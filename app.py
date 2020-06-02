@@ -36,7 +36,7 @@ def get_goods():
     # return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
     #                 {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
     #                 {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
-    return jsonify(comm.get_goods())
+    return jsonify(comm.get_user_items())
 
 
 if __name__ == '__main__':
