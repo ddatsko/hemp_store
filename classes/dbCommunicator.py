@@ -43,10 +43,17 @@ class DBCommunicator:
         # TODO: Add date to feed_back table
         sql_req += ";"
         self.cursor.execute(sql_req)
-        return [{"about_agronom":line[0], "message":line[1], "about_order":line[2], "id":line[3]} for line in self.cursor.fetchall()]
+        return [{"agronom_id":line[0], "message":line[1], "order_id":line[2], "id":line[3]} for line in self.cursor.fetchall()]
 
-    def add_user_feedback():
-        pass
+    def add_user_feedback(self, user_id, message, agronom, order_id, date=None):
+        sql_req = "INSERT INTO feed_back (author, message, about_order, about) VALUES"+\
+            f"({user_id}, '{message}', {order_id}, {agronom})"+\
+            ";"
+        self.cursor.execute(sql_req)
+        self.cursor.commit()
+        return 0
+    
+
 
 
     def __del__(self):
