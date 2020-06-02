@@ -1,9 +1,10 @@
 from flask import Flask, session, redirect, jsonify, request
 from classes.users import Buyer
+from classes import dbCommunicator
 
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
-
+comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
 
 @app.route('/')
 def title_page():
@@ -32,9 +33,10 @@ def buy_hemp():
 def get_goods():
     data = request.get_json()
     # TODO: make request to DB here
-    return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
-                    {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
-                    {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
+    # return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
+    #                 {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
+    #                 {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
+    return jsonify(comm.get_goods())
 
 
 if __name__ == '__main__':
