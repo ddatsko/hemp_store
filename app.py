@@ -1,6 +1,6 @@
 from flask import Flask, session, redirect, jsonify, request
 from utils import get_user_from_session
-from classes.users import Buyer, UserRole
+from classes.users import Buyer, UserRole, Agronom
 
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
@@ -9,7 +9,8 @@ app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 @app.route('/')
 def title_page():
     # if there is a logged in user
-    session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
+    # session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
+    session['user'] = Agronom(0, 'Agronom Agronomin', 'agronom@gmail.com').__dict__()
     user = get_user_from_session(session)
     return user.render_buyers()
 
@@ -50,6 +51,17 @@ def degustations():
     return user.render_degustations()
 
 
+@app.route('/buyers')
+def buyers():
+    user = get_user_from_session(session)
+    return user.render_buyers()
+
+
+@app.route('/trips')
+def trips():
+    return get_user_from_session(session).render_trips()
+
+
 #######################################################################
 # ############## API part #############################################
 #######################################################################
@@ -83,10 +95,10 @@ def get_orders():
 
 @app.route('/get_agronoms', methods=['POST'])
 def get_agronoms():
+    data = request.get_json()
     user = get_user_from_session(session)
     if user.role == UserRole.BUYER.value:  # Превірка, бо в цьому випадку треба знайти спільні покупки та дегустації
         user_id = user.id
-        data = request.get_json()
         min_buys = data['minBuys']
         max_buys = data['maxBuys']
         min_degustations = data['minDegustations']
@@ -94,6 +106,13 @@ def get_agronoms():
         # TODO: request to DB, using fields above here
         return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "buys": 10,
                          "degustations": 1},))
+    elif user.role == UserRole.AGRONOMIST.value:
+        min_trips = data['minTrips']
+        max_trips = data['maxTrips']
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        # TODO: request to DB here
+        return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "trips": 5},))
 
 
 @app.route('/get_feed_backs', methods=['POST'])
@@ -116,14 +135,49 @@ def get_feed_backs():
 @app.route('/get_degustations', methods=['POST'])
 def get_degustations():
     user = get_user_from_session(session)
+    data = request.get_json()
+    user_id = user.id
     if user.role == UserRole.BUYER.value:
-        data = request.get_json()
-        user_id = user.id
         min_date = data['minDate']
         max_date = data['maxDate']
         agronom_name = data['agronomName']
         # TODO: make request to BD using fields above
         return jsonify(({"id": 0, "product_name": "Cool hemp", "with": ['Denys', 'Ostap', 'Vlad', 'Anna']},))
+    elif user.role == UserRole.AGRONOMIST.value:
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        product_name = data['productName']
+        min_buyers = data['minBuyers']
+        # TODO: Request to DB here
+        return jsonify(({'id': 1, 'product_name': 'Cool hemp', 'testers': ['Ostap', 'Vlad', 'Denys'],
+                         'date': '2020-06-06', 'amount': '1'},))
+
+
+@app.route('/get_buyers', methods=['POST'])
+def get_buyers():
+    user = get_user_from_session(session)
+    if user.role == UserRole.AGRONOMIST.value:
+        data = request.get_json()
+        print(data)
+        min_date = data['minDate']
+        max_fate = data['maxDate']
+        min_buys = data['minBuys']
+        max_buys = data['maxBuys']
+        # TODO: Make request to DB here
+        return jsonify(({'id': 0, 'full_name': 'Ostap', 'buys': 10, 'degustations': 1, 'location': 'Lviv'},))
+
+
+@app.route('/get_trips', methods=['POST'])
+def get_tris():
+    user = get_user_from_session(session)
+    if user.role == UserRole.AGRONOMIST.value:
+        data = request.get_json()
+        user_id = user.id
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        # TODO: Request to DB here
+        return jsonify(({'id': 0, 'with': ['Ostap', 'Denys', 'Vlad', 'Anya'], 'departion': '2020-05-06',
+                        'arrival': '2020-05-07', 'location': 'Lviv'},))
 
 
 if __name__ == '__main__':

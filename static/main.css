@@ -66,6 +66,10 @@ footer {
     color: #aaaaaa;
 }
 
+.title-link {
+    color: inherit;
+}
+
 /* LEFT NAVIGATION */
 
 .left-nav {
