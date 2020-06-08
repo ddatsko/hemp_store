@@ -3,7 +3,7 @@
 * {
     margin: 0;
     padding: 0;
-    font-family: 'PT Sans';
+    font-family: 'PT Sans', Arial, sans-serif;
 }
 
 .container {
@@ -66,6 +66,10 @@ footer {
     color: #aaaaaa;
 }
 
+.title-link {
+    color: inherit;
+}
+
 /* LEFT NAVIGATION */
 
 .left-nav {
@@ -123,7 +127,7 @@ label.filter {
     margin: 10px 0;
 }
 
-input.price-input {
+input.number-input {
     width: 40px;
     margin: 0 10px;
     padding: 4px;
@@ -164,7 +168,7 @@ h2.page-title {
 #view-items {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-around;
     list-style: none;
 }
 
@@ -177,9 +181,8 @@ li.card-item > a {
 }
 
 li.card-item {
-
-
     width: 30%;
+    min-width: 250px;
     border: 1px solid #777;
     box-shadow: 0 0 10px #999;
     padding: 20px;
@@ -201,6 +204,11 @@ h3.card-name {
     font-size: 30px;
 }
 
+.rating {
+    color: #444444;
+    font-size: 30px;
+}
+
 .pack {
     display: inline-block;
     margin: 20px 0;
@@ -208,4 +216,78 @@ h3.card-name {
 
 .preview-img {
     width: 100%;
+}
+
+.seller {
+    font-size: 20px;
+}
+
+.card-item-right {
+    float: right;
+}
+
+.card-item-right a {
+    color: black;
+    text-decoration: none;
+}
+
+.feed-back-button {
+    margin-top: 20px;
+    color: black;
+    display: inline-block;
+    border: 1px solid #44aa44;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.feed-back-button:hover {
+    background-color: #EEEEEE;
+}
+
+.return-button {
+    color: white;
+    padding: 4px;
+    margin-top: 10px;
+    background-color: #555555;
+    text-align: center;
+}
+
+.return-button.enabled {
+    background-color: #bb1212;
+}
+
+.return-button.enabled:hover {
+    background-color: #881212;
+}
+
+.agronom-spare-info {
+    display: inline-block;
+    margin: 20px 0;
+}
+
+.feed-back-message {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #999999;
+    color: #555555;
+}
+
+#search-result {
+    margin: 20px;
+}
+
+.together {
+    margin-top: 30px;
+    border: 1px solid #999999;
+    padding: 30px;
+}
+
+.field-description {
+    font-size: 14px;
+}
+
+.field-value {
+    color: black;
+    font-weight: bolder;
+    font-size: 20px;
 }

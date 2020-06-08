@@ -3,14 +3,19 @@
 <head>
     <title>Hemp store</title>
     <link rel="stylesheet" href="../static/main.css">
+    {#    <meta name="viewport" content="width=1800, initial-scale=1.05, maximum-scale=1.1, minimum-scale=1">#}
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='/hemp.ico') }}"/>
     {% block head %}
     {% endblock %}
 </head>
 <body>
 <nav class="top-nav">
     <div class="container">
-        <img class="logo-img" alt="logo image" src="../static/hemp.png">
-        <span class="title">Hemp Store</span>
+        <a class="title-link" href="/">
+            <img class="logo-img" alt="logo image" src="../static/hemp.png">
+            <span class="title">Hemp Store</span>
+        </a>
+
         <ul>
             {% for element in top_nav_elements %}
                 <li class="top-nav-item"><a href="{{ element['link'] }}">{{ element['text'] }}</a></li>
@@ -42,7 +47,7 @@
 </div>
 
 <footer>
-    &copy; Best team ever
+    &copy; Коза Дереза
 </footer>
 
 </body>

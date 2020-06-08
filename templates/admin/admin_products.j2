@@ -9,27 +9,29 @@
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
         <h3 class="form-title">Filters</h3>
-        <label class="filter">Price:<input class="number-input" type="number" id="min-price" placeholder="min"> - <input
-                class="number-input" type="number" placeholder="max" id="max-price"></label>
-        <label class="filter">Min age:<input class="number-input" type="number" id="min-age" placeholder="min">
+        <label class="filter">Хоча б <input class="number-input" type="number" id="min-distinct-buyers"
+                                            placeholder="min"> різних покупців
+        </label>
+        <label class="filter">в період <input class="date-input" type="date" id="min-date" placeholder="від"> - <input
+                class="date-input" type="date" id="max-date" placeholder="до">
         </label>
         <button type="button" onclick="getItems()">Apply filters</button>
     </form>
 
     <script>
         async function getItems() {
-            let minAge = parseInt(document.getElementById('min-age').value) || 0;
-            let minPrice = parseInt(document.getElementById('min-price').value) || 0;
-            let maxPrice = parseInt(document.getElementById('max-price').value) || 10000000; // Just a big value. Better change this
+            let minDistinctBuyers = parseInt(document.getElementById('min-distinct-buyers').value) || 0;
+            let minDate = document.getElementById('min-date').value || '0001-01-01';
+            let maxDate = document.getElementById('max-date').value || '100000-01-01';
 
             const url = "/get_goods";
             fetch(url,
                 {
                     method: "POST",
                     body: JSON.stringify({
-                        'minAge': minAge,
-                        'minPrice': minPrice,
-                        'maxPrice': maxPrice
+                        'minDistinctBuyers': minDistinctBuyers,
+                        'minDate': minDate,
+                        'maxDate': maxDate
                     }),
                     credentials: 'same-origin',
                     headers: new Headers({
@@ -46,9 +48,12 @@
                     item.innerHTML = `<a href="/product/${product.id}">
                                       <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
                                         <h3 class="card-name">${product.name}</h3>
-                                      <span class="pack">По ${product.pack} шт. </span><br>
+                                        <span>Відсоток повернень за період: ${product.return_percent}</span><br>
+                                               <span class="pack">Продається по ${product.pack} шт. </span><br>
+
                                       <span class="price">${product.price} грн.</span>
                                       <span class="min-age">${product.min_age}+</span>
+
                                       </a> `;
 
                     list.appendChild(item);
@@ -59,7 +64,7 @@
 
 {% endblock %}
 {% block body %}
-    <h2 class="page-title">Купити коноплю</h2>
+    <h2 class="page-title">Продукти (посортовані за спаданням відсотку повернень)</h2>
     <ul id="view-items">
 
     </ul>

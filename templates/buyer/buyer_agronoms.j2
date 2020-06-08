@@ -1,0 +1,83 @@
+{% extends 'main.j2' %}
+
+{% block between_navs %}
+    <div class="container">
+        <h2 class="user-name">{{ full_name }}</h2>
+    </div>
+{% endblock %}
+
+{% block right_to_nav %}
+    <form class="filters" id="filters-form" onsubmit="return false;">
+        <h3 class="form-title">Filters</h3>
+        <label class="filter">Покупок<input class="number-input" type="number" id="min-buys" placeholder="min"> - <input
+               class="number-input" type="number" placeholder="max" id="max-buys"></label>
+        <label class="filter">Дегустацій<input class="number-input" type="number" id="min-degustations" placeholder="min"> - <input
+               class="number-input" type="number" placeholder="max" id="max-degustations"></label>
+        <button type="button" onclick="getItems()">Apply filters</button>
+    </form>
+
+    <script>
+        async function getItems() {
+            let minBuys = document.getElementById('min-buys');
+            let maxBuys = document.getElementById('max-buys');
+            let minDegustations = document.getElementById('min-degustations');
+            let maxDegustations = document.getElementById('max-degustations');
+
+            const url = "/get_agronoms";
+            fetch(url,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        'minBuys': minBuys || 0,
+                        'maxBuys': maxBuys || 11000000000,
+                        'minDegustations': minDegustations || 0,
+                        'maxDegustations': maxDegustations || 100000000000
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                })
+                .then(response => response.json()).then(data => {
+                let list = document.getElementById('view-items');
+                list.innerHTML = '';
+                for (let agronom of data) {
+                    let item = document.createElement('li');
+                    item.classList.add('card-item');
+                    let itemLink = document.createElement('a');
+                    itemLink.setAttribute('href', `/agronom/${agronom.id}`);
+
+                    itemLink.innerHTML = `
+                                      <img class="preview-img" src="../../static/ostap.jpg" alt="product photo">
+                                      <h3 class="card-name">${agronom.full_name}</h3>
+                                      <span class="city">${agronom.location}</span><br>
+                                          <a href="/leave_agronom_feed_back/${agronom.id}">
+                                              <div class="feed-back-button">Залишити відгук</div>
+                                          </a><br>
+                                          <span class="agronom-spare-info">
+                                          Покупок: ${agronom.buys}
+                                          Дегустацій: ${agronom.degustations}
+                                            </span>
+                                            <br>
+
+                                      <span class="rating">${agronom.rating} / 10</span>
+                                      `;
+
+                    item.appendChild(itemLink);
+                    list.appendChild(item);
+                }
+            });
+        }
+    </script>
+
+
+{% endblock %}
+{% block body %}
+    <h2 class="page-title">Агрономи</h2>
+    <ul id="view-items">
+
+    </ul>
+
+{% endblock %}
+
+
