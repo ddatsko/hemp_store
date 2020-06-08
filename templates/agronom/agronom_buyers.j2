@@ -9,36 +9,29 @@
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
         <h3 class="form-title">Filters</h3>
-        <label class="filter">Дата: <input class="date-input" type="date" id="min-date" placeholder="min"> - <input
-                class="date-input" type="date" placeholder="max" id="max-date"></label>
-        <label class="filter">
-            Ім'я агронома: <input type="text" class="text-input" type="text" id="agronom-name" placeholder="Name">
-        </label>
-
+        <label class="filter">Покупок у мене<input class="number-input" type="number" id="min-buys" placeholder="min"> - <input
+               class="number-input" type="number" placeholder="max" id="max-buys"></label>
+        <label class="filter">В період <input class="date-input" type="date" id="min-date" placeholder="від"> - <input
+               class="date-input" type="date" placeholder="до" id="max-date"></label>
         <button type="button" onclick="getItems()">Apply filters</button>
     </form>
 
-    <h3 id="search-result">
-
-    </h3>
-
     <script>
         async function getItems() {
-            let result = document.getElementById('search-result');
-
-
+            let minBuys = document.getElementById('min-buys').value || 0;
+            let maxBuys = document.getElementById('max-buys').value || 10000000000;
             let minDate = document.getElementById('min-date').value || '0001-01-01';
             let maxDate = document.getElementById('max-date').value || '100000-01-01';
-            let agronomName = document.getElementById('agronom-name').valueOf();
 
-            const url = "/get_degustations";
+            const url = "/get_buyers";
             fetch(url,
                 {
                     method: "POST",
                     body: JSON.stringify({
+                        'minBuys': minBuys,
+                        'maxBuys': maxBuys,
                         'minDate': minDate,
-                        'maxDate': maxDate,
-                        'agronomName': agronomName
+                        'maxDate': maxDate
                     }),
                     credentials: 'same-origin',
                     headers: new Headers({
@@ -46,25 +39,23 @@
                     })
                 })
                 .then(response => response.json()).then(data => {
-                result.innerHTML = `Ви побували на ${data.length} дегустаціях за цей період`;
-
                 let list = document.getElementById('view-items');
                 list.innerHTML = '';
-                for (let degustation of data) {
+                for (let buyer of data) {
                     let item = document.createElement('li');
                     item.classList.add('card-item');
                     let itemLink = document.createElement('a');
-                    itemLink.setAttribute('href', `/degustation/${degustation.id}`);
+                    itemLink.setAttribute('href', `/buyer/${buyer.id}`);
 
-
-                    degustation.with = degustation.with.map((name) => "<li>" + name + "</li>");
                     itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
-                                      <h3 class="card-name">${degustation.product_name}</h3>
-                                      <ul class="together">
-                                        ${degustation.with.reduce((first, second) => first + second)}
-                                      </ul>
-
+                                      <img class="preview-img" src="../../static/ostap.jpg" alt="product photo">
+                                      <h3 class="card-name">${buyer.full_name}</h3>
+                                      <span class="city">${buyer.location}</span><br>
+                                          <span class="agronom-spare-info">
+                                          Покупок: ${buyer.buys}
+                                          Дегустацій: ${buyer.degustations}
+                                            </span>
+                                            <br>
                                       `;
 
                     item.appendChild(itemLink);
@@ -77,11 +68,9 @@
 
 {% endblock %}
 {% block body %}
-    <h2 class="page-title">Мої дегустації</h2>
+    <h2 class="page-title">Покупці</h2>
     <ul id="view-items">
 
     </ul>
 
 {% endblock %}
-
-
