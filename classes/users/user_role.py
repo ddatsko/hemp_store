@@ -6,3 +6,4 @@ class UserRole(Enum):
     AGRONOMIST = 2
     ADMIN = 3
     NO_USER = 4
+    SELLER = 5

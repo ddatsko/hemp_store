@@ -4,39 +4,50 @@ from utils import get_user_from_session
 from classes.users import Buyer, UserRole, Agronom
 from helper_functions import check_registered, register_new
 
-
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
+
 @app.route('/', methods=["GET", "POST"])
 def render_welcome():
-    return render_template("welcome/welcome.html")
+    user = get_user_from_session(session)
+    return user.render_default()
 
 
 @app.route('/log_in')
 def render_login():
     # takes login data from user
-    return render_template("log_in/log_in.html")
+    user = get_user_from_session(session)
+    return user.render_login()
+
 
 @app.route('/log_in', methods=["POST"])
 def process_input():
     # processes user's input
+    if 'user' in session:
+        return redirect('/')
     pas = request.form['password']
     mail = request.form['mail']
 
     if check_registered(pas, mail):
-        return title_page(mail, pas)
+        session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
+        return redirect('/')
     else:
         return render_template("log_in/failed_log.html")
 
+
 @app.route('/agro_register')
 def process_a_reg():
-    #processes agro registration
+    # processes agro registration
+    if 'user' in session:
+        return redirect('/')
     return render_template("register/agro_register.html")
+
 
 @app.route('/agro_register', methods=["POST"])
 def process_a_reg_response():
-    #processes agro registration
+    # processes agro registration
+    session.clear()
     name = request.form['name']
     surname = request.form['surname']
     phone = request.form['phone']
@@ -45,19 +56,24 @@ def process_a_reg_response():
     location = request.form['location']
     password = request.form['password']
 
-    if register_new("agronom", name, surname, phone, b_a, mail, location, password):
+    if register_new(UserRole.AGRONOMIST, name, surname, phone, b_a, mail, location, password):
         return render_template("register/successful_register.html")
     else:
         return render_template("register/failed_register.html")
 
+
 @app.route('/buyer_register')
 def process_b_reg():
-    #processes buyer registration
+    # processes buyer registration
+    if 'user' in session:          
+        return redirect('/')           
     return render_template("register/buyer_register.html")
+
 
 @app.route('/buyer_register', methods=["POST"])
 def process_b_reg_response():
-    #processes agro registration
+    # processes agro registration
+    session.clear()
     name = request.form['name']
     surname = request.form['surname']
     phone = request.form['phone']
@@ -66,21 +82,25 @@ def process_b_reg_response():
     location = request.form['location']
     money = request.form['money']
     password = request.form['password']
-    
 
-    if register_new("agronom", name, surname, phone, b_a, mail, location, password):
+    if register_new(UserRole.BUYER, name, surname, phone, b_a, mail, location, password):
         return render_template("register/successful_register.html")
     else:
         return render_template("register/failed_register.html")
 
+
 @app.route('/seller_register')
 def process_s_reg():
-    #processes buyer registration
+    # processes buyer registration
+    if 'user' in session:
+        return redirect('/')
     return render_template("register/seller_register.html")
+
 
 @app.route('/seller_register', methods=["POST"])
 def process_s_reg_response():
-    #processes agro registration
+    # processes agro registration
+    session.clear()
     name = request.form['name']
     surname = request.form['surname']
     phone = request.form['phone']
@@ -89,22 +109,12 @@ def process_s_reg_response():
     location = request.form['location']
     productivity = request.form['productivity']
     password = request.form['password']
-    
-    if register_new("agronom", name, surname, phone, b_a, mail, location, password):
+
+    if register_new(UserRole.SELLER, name, surname, phone, b_a, mail, location, password):
         return render_template("register/successful_register.html")
     else:
         return render_template("register/failed_register.html")
 
-@app.route('/main')
-def title_page( mail: str = None, password: str = None):
-    # if there is a logged in user
-
-    session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
-
-    user = get_user_from_session(session)
-    return user.render_buyers()
-
-    return render_template
 
 @app.route('/logout')
 def log_out():
@@ -268,7 +278,7 @@ def get_tris():
         max_date = data['maxDate']
         # TODO: Request to DB here
         return jsonify(({'id': 0, 'with': ['Ostap', 'Denys', 'Vlad', 'Anya'], 'departion': '2020-05-06',
-                        'arrival': '2020-05-07', 'location': 'Lviv'},))
+                         'arrival': '2020-05-07', 'location': 'Lviv'},))
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@ from classes.users.user_role import UserRole
 from flask import redirect
 from flask import render_template
 
+
 class User:
     def __init__(self, user_id: int, full_name: str, email: str, role: UserRole):
         self.id = user_id
@@ -28,6 +29,9 @@ class User:
         return redirect('/')
 
     def render_trips(self):
+        return redirect('/')
+
+    def render_login(self):
         return redirect('/')
 
     def __dict__(self):
