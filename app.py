@@ -1,18 +1,107 @@
-from flask import Flask, session, redirect, jsonify, request
+from flask import Flask, session, redirect, jsonify, request, render_template, url_for
 from utils import get_user_from_session
 from classes.users import Buyer, UserRole
+from helper_functions import check_registered, register_new
 
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
+@app.route('/', methods=["GET", "POST"])
+def render_welcome():
+    return render_template("welcome/welcome.html")
 
-@app.route('/')
-def title_page():
+
+@app.route('/log_in')
+def render_login():
+    # takes login data from user
+    return render_template("log_in/log_in.html")
+
+@app.route('/log_in', methods=["POST"])
+def process_input():
+    # processes user's input
+    pas = request.form['password']
+    mail = request.form['mail']
+
+    if check_registered(pas, mail):
+        return title_page(mail, pas)
+    else:
+        return render_template("log_in/failed_log.html")
+
+@app.route('/agro_register')
+def process_a_reg():
+    #processes agro registration
+    return render_template("register/agro_register.html")
+
+@app.route('/agro_register', methods=["POST"])
+def process_a_reg_response():
+    #processes agro registration
+    name = request.form['name']
+    surname = request.form['surname']
+    phone = request.form['phone']
+    b_a = request.form['bank_account']
+    mail = request.form['mail']
+    location = request.form['location']
+    password = request.form['password']
+
+    if register_new("agronom", name, surname, phone, b_a, mail, location, password):
+        return render_template("register/successful_register.html")
+    else:
+        return render_template("register/failed_register.html")
+
+@app.route('/buyer_register')
+def process_b_reg():
+    #processes buyer registration
+    return render_template("register/buyer_register.html")
+
+@app.route('/buyer_register', methods=["POST"])
+def process_b_reg_response():
+    #processes agro registration
+    name = request.form['name']
+    surname = request.form['surname']
+    phone = request.form['phone']
+    b_a = request.form['bank_account']
+    mail = request.form['mail']
+    location = request.form['location']
+    money = request.form['money']
+    password = request.form['password']
+    
+
+    if register_new("agronom", name, surname, phone, b_a, mail, location, password):
+        return render_template("register/successful_register.html")
+    else:
+        return render_template("register/failed_register.html")
+
+@app.route('/seller_register')
+def process_s_reg():
+    #processes buyer registration
+    return render_template("register/seller_register.html")
+
+@app.route('/seller_register', methods=["POST"])
+def process_s_reg_response():
+    #processes agro registration
+    name = request.form['name']
+    surname = request.form['surname']
+    phone = request.form['phone']
+    b_a = request.form['bank_account']
+    mail = request.form['mail']
+    location = request.form['location']
+    productivity = request.form['productivity']
+    password = request.form['password']
+    
+    if register_new("agronom", name, surname, phone, b_a, mail, location, password):
+        return render_template("register/successful_register.html")
+    else:
+        return render_template("register/failed_register.html")
+
+@app.route('/main')
+def title_page( mail: str = None, password: str = None):
     # if there is a logged in user
+
     session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
     user = get_user_from_session(session)
     return user.render_buyers()
 
+    return render_template
 
 @app.route('/logout')
 def log_out():
