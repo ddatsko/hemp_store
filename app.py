@@ -9,7 +9,9 @@ from classes import dbCommunicator
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
-comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
+# comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
+comm = dbCommunicator("db14", host = "142.93.163.88",port = 6006, user = "team14", password = "pas1swo4rd")
+
 
 @app.route('/', methods=["GET", "POST"])
 def render_welcome():
@@ -216,10 +218,10 @@ def get_orders():
         min_date = filters['minDate']
         max_date = filters['maxDate']
         # TODO: Request to db here
-        
-        return jsonify(
-            ({"id": "1", "name": "Best hemp", "seller": "Ivan", "amount_of_product": 128, "made": "2020-01-01",
-              "successful": True},))
+        return jsonify(comm.get_user_orders(user_id, min_date, max_date))
+        # return jsonify(
+        #     ({"id": "1", "name": "Best hemp", "seller": "Ivan", "amount_of_product": 128, "made": "2020-01-01",
+        #       "successful": True},))
 
 
 @app.route('/get_agronoms', methods=['POST'])
@@ -256,15 +258,16 @@ def get_feed_backs():
     if user.role == UserRole.BUYER.value:  # Бо різні запити до БД для покупця і, наприклад, агронома
         user_id = user.id
         data = request.get_json()
-        min_data = data['minDate']
+        min_date = data['minDate']
         max_date = data['maxDate']
         # TODO: make request to DB here, using above fields
-        return jsonify(({"id": 0, "agronom_name": "Ostap",
-                         "message": "Good Good Good. I loved this hemp. The agronom is super cool",
-                         "product_name": "Cool hemp"},
-                        {"id": 0, "agronom_name": "Ostap",
-                         "message": "Good Good Good. I loved this hemp. The agronom is super cool",
-                         "product_name": "Cool hemp"}))
+        return(jsonify(comm.comm_user_feedback(user_id, date_from=min_date, date_to = max_date)))
+        # return jsonify(({"id": 0, "agronom_name": "Ostap",
+        #                  "message": "Good Good Good. I loved this hemp. The agronom is super cool",
+        #                  "product_name": "Cool hemp"},
+        #                 {"id": 0, "agronom_name": "Ostap",
+        #                  "message": "Good Good Good. I loved this hemp. The agronom is super cool",
+        #                  "product_name": "Cool hemp"}))
 
 
 @app.route('/get_degustations', methods=['POST'])
