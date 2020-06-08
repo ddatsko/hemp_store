@@ -9,7 +9,7 @@
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
         <h3 class="form-title">Filters</h3>
-        <label class="filter">Брати до уваги агрономів, які збирали сорт щонайменше <input class="number-input" type="number" id="min-harvesting" placeholder="min"> разів
+        <label class="filter">Брати до уваги агрономів, які збирали сорт щонайменше <input class="number-input" type="number" id="min-harvesting" placeholder="min"> разів</label>
 
         <label class="filter">в період <input class="date-input" type="date" id="min-date" placeholder="від"> - <input class="date-input" type="date" id="max-date" placeholder="до">
         </label>
@@ -17,6 +17,7 @@
     </form>
 
     <script>
+        window.onload = (event) => getItems();
         async function getItems() {
             let minHarvesting = parseInt(document.getElementById('min-harvesting').value) || 0;
             let minDate = document.getElementById('min-date').value || '0001-01-01';
@@ -43,13 +44,12 @@
                     let item = document.createElement('li');
                     item.classList.add('card-item');
 
-                    item.innerHTML = `<a href="/sort/${sort.id}">
-                                      <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
+                    item.innerHTML = `<a href="/hemp/${sort.id}">
+                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
                                         <h3 class="card-name">${sort.name}</h3>
                                            <span class="field-description">Середня кількість поїздок за вказаний період агрономами, що збирали урожай цього сорту
                                            щонайменше вибрану кількість разів: </span><span class="field-value"> ${sort.average_trips}</span>
                                       </a> `;
-
                     list.appendChild(item);
                 }
             });

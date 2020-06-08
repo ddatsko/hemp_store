@@ -15,6 +15,7 @@
     </form>
 
     <script>
+        window.onload = (event) => getItems();
         async function getItems() {
             let minDate = document.getElementById('min-date').value || '0001-01-01';
             let maxDate = document.getElementById('max-date').value || '100000-01-01';
@@ -38,13 +39,12 @@
                 for (let deal of data) {
                     let item = document.createElement('li');
                     item.classList.add('card-item');
-                    let itemLink = document.createElement('a');
-                    itemLink.setAttribute('href', `/deals/${deal.id}`);
 
-                    itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
+
+                    item.innerHTML = `
+                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
                                       <div class="card-item-right">
-                                          <a href="/leave_deal_feed_back/${deal.id}">
+                                          <a href="/leave_feed_back/product/${deal.product_id}">
                                               <div class="feed-back-button">Залишити відгук</div>
                                           </a>
                                           <a href="${deal.successful ? '/return/' + deal.id : '#'}">
@@ -57,7 +57,6 @@
                                       <span class="date">${deal.made}</span>
                                       `;
 
-                    item.appendChild(itemLink);
                     list.appendChild(item);
                 }
             });

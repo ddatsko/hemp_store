@@ -19,6 +19,7 @@
     </form>
 
     <script>
+        window.onload = (event) => getItems();
         async function getItems() {
             let minDistinctBuyers = parseInt(document.getElementById('min-distinct-buyers').value) || 0;
             let minDate = document.getElementById('min-date').value || '0001-01-01';
@@ -46,7 +47,7 @@
                     item.classList.add('card-item');
 
                     item.innerHTML = `<a href="/product/${product.id}">
-                                      <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
+                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
                                         <h3 class="card-name">${product.name}</h3>
                                         <span>Відсоток повернень за період: ${product.return_percent}</span><br>
                                                <span class="pack">Продається по ${product.pack} шт. </span><br>

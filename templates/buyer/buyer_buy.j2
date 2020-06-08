@@ -17,6 +17,7 @@
     </form>
 
     <script>
+        window.onload = (event) => getItems();
         async function getItems() {
             let minAge = parseInt(document.getElementById('min-age').value) || 0;
             let minPrice = parseInt(document.getElementById('min-price').value) || 0;
@@ -44,7 +45,7 @@
                     item.classList.add('card-item');
 
                     item.innerHTML = `<a href="/product/${product.id}">
-                                      <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
+                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
                                         <h3 class="card-name">${product.name}</h3>
                                       <span class="pack">По ${product.pack} шт. </span><br>
                                       <span class="price">${product.price} грн.</span>

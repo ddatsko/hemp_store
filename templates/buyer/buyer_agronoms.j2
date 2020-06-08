@@ -17,6 +17,7 @@
     </form>
 
     <script>
+        window.onload = (event) => getItems();
         async function getItems() {
             let minBuys = document.getElementById('min-buys');
             let maxBuys = document.getElementById('max-buys');
@@ -48,10 +49,10 @@
                     itemLink.setAttribute('href', `/agronom/${agronom.id}`);
 
                     itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/ostap.jpg" alt="product photo">
+                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
                                       <h3 class="card-name">${agronom.full_name}</h3>
                                       <span class="city">${agronom.location}</span><br>
-                                          <a href="/leave_agronom_feed_back/${agronom.id}">
+                                          <a href="/leave_feed_back/agronom/${agronom.id}">
                                               <div class="feed-back-button">Залишити відгук</div>
                                           </a><br>
                                           <span class="agronom-spare-info">
