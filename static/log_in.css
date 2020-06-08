@@ -1,0 +1,43 @@
+div {
+    padding: 150px;
+    background-color: white;
+    width: 600px;
+    height: 300px;
+    margin-left: 25.5%;
+    margin-top: 200px;
+    border-radius: 10px;
+}
+
+form h1 {
+    color: black;
+    padding: 10px 0px;
+    text-align: center;
+}
+
+form input {
+    display: block;
+    height: 35px;
+    margin-left: 35%;
+    margin-top: 10px;
+    padding: 2px;
+    border-radius: 10px;
+}
+
+form a {
+    display: block;
+    text-decoration: none;
+    border: solid 3px black;
+    border-radius: 10px;
+    width: 150px;
+    height: 20px;
+    margin-left: 37.5%;
+    text-align: center;
+    margin-top: 10px;
+    color: black;
+}
+
+form a:hover {
+    background-color: black;
+    color: white;
+    transition-duration: 1s;
+}
