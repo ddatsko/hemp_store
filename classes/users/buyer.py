@@ -16,25 +16,25 @@ class Buyer(User):
     def __init__(self, user_id: int, full_name: str, email: str, role=UserRole.BUYER.value):
         super().__init__(user_id, full_name, email, role)
 
-    def __render(self, template_filename: str, selected: int):
+    def _render(self, template_filename: str, selected: int):
         return render_template(template_filename, top_nav_elements=self.top_nav_elements,
                                left_nav_elements=self.left_nav_elements,
                                selected=selected, full_name=self.full_name)
 
     def render_buyers(self):
-        return self.__render('buyer/buyer_buy.j2', 0)
+        return self._render('buyer/buyer_buy.j2', 0)
 
     def render_default(self):
         return self.render_buyers()
 
     def render_orders(self):
-        return self.__render('buyer/buyer_orders.j2', 1)
+        return self._render('buyer/buyer_orders.j2', 1)
 
     def render_agronoms(self):
-        return self.__render('buyer/buyer_agronoms.j2', 2)
+        return self._render('buyer/buyer_agronoms.j2', 2)
 
     def render_feed_backs(self):
-        return self.__render('buyer/buyer_feed_backs.j2', 3)
+        return self._render('buyer/buyer_feed_backs.j2', 3)
 
     def render_degustations(self):
-        return self.__render('buyer/buyer_degustations.j2', 4)
+        return self._render('buyer/buyer_degustations.j2', 4)

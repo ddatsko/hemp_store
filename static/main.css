@@ -281,3 +281,13 @@ h3.card-name {
     border: 1px solid #999999;
     padding: 30px;
 }
+
+.field-description {
+    font-size: 14px;
+}
+
+.field-value {
+    color: black;
+    font-weight: bolder;
+    font-size: 20px;
+}

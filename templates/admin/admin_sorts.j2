@@ -1,0 +1,66 @@
+{% extends 'main.j2' %}
+
+{% block between_navs %}
+    <div class="container">
+        <h2 class="user-name">{{ full_name }}</h2>
+    </div>
+{% endblock %}
+
+{% block right_to_nav %}
+    <form class="filters" id="filters-form" onsubmit="return false;">
+        <h3 class="form-title">Filters</h3>
+        <label class="filter">Брати до уваги агрономів, які збирали сорт щонайменше <input class="number-input" type="number" id="min-harvesting" placeholder="min"> разів
+
+        <label class="filter">в період <input class="date-input" type="date" id="min-date" placeholder="від"> - <input class="date-input" type="date" id="max-date" placeholder="до">
+        </label>
+        <button type="button" onclick="getItems()">Apply filters</button>
+    </form>
+
+    <script>
+        async function getItems() {
+            let minHarvesting = parseInt(document.getElementById('min-harvesting').value) || 0;
+            let minDate = document.getElementById('min-date').value || '0001-01-01';
+            let maxDate = document.getElementById('max-date').value || '100000-01-01';
+
+            const url = "/get_sorts";
+            fetch(url,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        'minHarvesting': minHarvesting,
+                        'minDate': minDate,
+                        'maxDate': maxDate
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                })
+                .then(response => response.json()).then(data => {
+                let list = document.getElementById('view-items');
+                list.innerHTML = '';
+                for (let sort of data) {
+                    let item = document.createElement('li');
+                    item.classList.add('card-item');
+
+                    item.innerHTML = `<a href="/sort/${sort.id}">
+                                      <img class="preview-img" src="../../static/hemp-plantation.jpg" alt="product photo">
+                                        <h3 class="card-name">${sort.name}</h3>
+                                           <span class="field-description">Середня кількість поїздок за вказаний період агрономами, що збирали урожай цього сорту
+                                           щонайменше вибрану кількість разів: </span><span class="field-value"> ${sort.average_trips}</span>
+                                      </a> `;
+
+                    list.appendChild(item);
+                }
+            });
+        }
+    </script>
+
+{% endblock %}
+{% block body %}
+    <h2 class="page-title">Купити коноплю</h2>
+    <ul id="view-items">
+
+    </ul>
+
+{% endblock %}

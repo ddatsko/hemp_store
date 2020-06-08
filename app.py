@@ -1,7 +1,7 @@
 from flask import Flask, session, redirect, jsonify, request, render_template, url_for
 from utils import get_user_from_session
 
-from classes.users import Buyer, UserRole, Agronom
+from classes.users import Buyer, UserRole, Agronom, Admin
 from helper_functions import check_registered, register_new
 
 app = Flask(__name__)
@@ -30,7 +30,13 @@ def process_input():
     mail = request.form['mail']
 
     if check_registered(pas, mail):
-        session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
+        # JUST FOR TEST
+        if mail == 'admin@gmail.com':
+            session['user'] = Admin(0, 'Denys', 'admin@gmail.com').__dict__()
+        elif mail == 'agronom@gmail.com':
+            session['user'] = Agronom(0, 'Denys', 'agronom@gmail.com').__dict__()
+        else:
+            session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
         return redirect('/')
     else:
         return render_template("log_in/failed_log.html")
@@ -65,8 +71,8 @@ def process_a_reg_response():
 @app.route('/buyer_register')
 def process_b_reg():
     # processes buyer registration
-    if 'user' in session:          
-        return redirect('/')           
+    if 'user' in session:
+        return redirect('/')
     return render_template("register/buyer_register.html")
 
 
@@ -163,25 +169,42 @@ def trips():
     return get_user_from_session(session).render_trips()
 
 
+@app.route('/sorts')
+def sorts():
+    return get_user_from_session(session).render_sorts()
+
+
+@app.route('/products')
+def products():
+    return get_user_from_session(session).render_products()
 #######################################################################
 # ############## API part #############################################
 #######################################################################
 
 @app.route('/get_goods', methods=['POST'])
 def get_goods():
+
     data = request.get_json()
-    # TODO: make request to DB here
-    return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
-                    {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
-                    {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
+    user = get_user_from_session(session)
+    if user.role == UserRole.BUYER.value:
+        min_age = data['minAge']
+        min_price = data['minPrice']
+        max_proce = data['maxPrice']
+        # TODO: make request to DB here
+        return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
+                        {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
+                        {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
+    elif user.role == UserRole.ADMIN.value:
+        min_distinct_buyers = data['minDistinctBuyers']
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        return jsonify(({'id': 4, 'name': 'Best hemp', 'return_percent': '15', 'pack': 1, 'price': 16, 'min_age': 18},))
 
 
 @app.route('/get_orders', methods=['POST'])
 def get_orders():
     user = get_user_from_session(session)
-    if user.role != UserRole.BUYER.value:
-        return jsonify([])
-    else:
+    if user.role == UserRole.BUYER.value:
         user_id = user.id
         filters = request.get_json()
 
@@ -214,6 +237,12 @@ def get_agronoms():
         max_date = data['maxDate']
         # TODO: request to DB here
         return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "trips": 5},))
+    elif user.role == UserRole.ADMIN.value:
+        min_sorts = data['minSorts']
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        # TODO REQUEST TO DB here
+        return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "sorts": 5},))
 
 
 @app.route('/get_feed_backs', methods=['POST'])
@@ -257,15 +286,20 @@ def get_degustations():
 @app.route('/get_buyers', methods=['POST'])
 def get_buyers():
     user = get_user_from_session(session)
+    data = request.get_json()
     if user.role == UserRole.AGRONOMIST.value:
-        data = request.get_json()
-        print(data)
         min_date = data['minDate']
         max_fate = data['maxDate']
         min_buys = data['minBuys']
         max_buys = data['maxBuys']
         # TODO: Make request to DB here
         return jsonify(({'id': 0, 'full_name': 'Ostap', 'buys': 10, 'degustations': 1, 'location': 'Lviv'},))
+    if user.role == UserRole.ADMIN.value:
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        min_buys = data['minBuys']
+        # TODO: Request to DB here
+        return jsonify(({'id': 0, 'full_name': 'Ostap', 'buys': 10, 'location': 'Lviv'},))
 
 
 @app.route('/get_trips', methods=['POST'])
@@ -279,6 +313,19 @@ def get_tris():
         # TODO: Request to DB here
         return jsonify(({'id': 0, 'with': ['Ostap', 'Denys', 'Vlad', 'Anya'], 'departion': '2020-05-06',
                          'arrival': '2020-05-07', 'location': 'Lviv'},))
+
+
+@app.route('/get_sorts', methods=['POST'])
+def get_sorts():
+    user = get_user_from_session(session)
+    data = request.get_json()
+    if user.role == UserRole.ADMIN.value:
+        min_date = data['minDate']
+        max_date = data['maxDate']
+        min_harvesting = data['minHarvesting']
+        # TODO: Request to DB here
+        return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'}, ))
+
 
 
 if __name__ == '__main__':

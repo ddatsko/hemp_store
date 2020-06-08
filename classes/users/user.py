@@ -4,7 +4,10 @@ from flask import render_template
 
 
 class User:
-    def __init__(self, user_id: int, full_name: str, email: str, role: UserRole):
+    top_nav_elements = {}
+    left_nav_elements = {}
+
+    def __init__(self, user_id: int, full_name: str, email: str, role: int):
         self.id = user_id
         self.full_name = full_name
         self.email = email
@@ -34,8 +37,19 @@ class User:
     def render_login(self):
         return redirect('/')
 
+    def render_sorts(self):
+        return redirect('/')
+
+    def render_products(self):
+        return redirect('/')
+
     def __dict__(self):
         return {'user_id': self.id,
                 'full_name': self.full_name,
                 'email': self.email,
                 'role': self.role}
+
+    def _render(self, template_filename: str, selected: int):
+        return render_template(template_filename, top_nav_elements=self.top_nav_elements,
+                               left_nav_elements=self.left_nav_elements,
+                               selected=selected, full_name=self.full_name)
