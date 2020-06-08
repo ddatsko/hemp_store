@@ -2,9 +2,9 @@ import psycopg2
 import datetime
 
 class DBCommunicator:
-    def __init__(self, db_name: str, user="postgres", password="postgres", host="localhost"):
+    def __init__(self, db_name: str, user="postgres", password="postgres", host="localhost", port = 5432):
         self.connection = psycopg2.connect(
-            dbname=db_name, user=user, password=password, host=host)
+            dbname=db_name, user=user, password=password, host=host, port = port)
         self.cursor = self.connection.cursor()
         return
 
@@ -52,8 +52,49 @@ class DBCommunicator:
         self.cursor.execute(sql_req)
         self.cursor.commit()
         return 0
-    
 
+    def get_person_id(self, mail, password=None):
+        sql_req = f"SELECT id from person where True"+\
+            f" and (mail = '{mail}') "+\
+            (f" and (password = '{password}')" if password else "")+\
+            ";"
+        print(mail, " ", password)
+        self.cursor.execute(sql_req)
+        for line in self.cursor.fetchall():
+            return line[0]
+        return None
+
+    def add_admin_person(self, mail, password, name, surname='', phone='', bank_account='', **kwargs):
+        sql_req = "INSERT into person (name, surname, phone, bank_account, mail,, password) VALUES"+\
+                  f"('{name}',,'{surname}','{phone}','{bank_account}','{mail}', '{password})"+\
+                      ";"
+        self.cursor.execute(sql_req)
+        self.cursor.commit()
+        return 0
+
+    def add_admin_seller(self, id, productivity_per_month=0, location=""):
+        sql_req = "INSERT into seller(id, productivity_per_month, location) VALUES"+\
+            f"({id},{productivity_per_month},'{location}')"+\
+                ";"
+        self.cursor.execute(sql_req)
+        self.cursor.commit()
+        return 0
+
+    def add_admin_agronom(self, id, location="", debt=0, reputation=0):
+        sql_req = "INSERT into seller(id, location, debt, reputation) VALUES"+\
+            f"({id},{location},{debt}, {reputation})"+\
+                ";"
+        self.cursor.execute(sql_req)
+        self.cursor.commit()
+        return 0
+    
+    def add_admin_buyer(self, id, money=0, location=""):
+        sql_req = "INSERT into seller(id, money, location) VALUES"+\
+            f"({id},{money},'{location}')"+\
+                ";"
+        self.cursor.execute(sql_req)
+        self.cursor.commit()
+        return 0
 
 
     def __del__(self):
@@ -63,7 +104,10 @@ class DBCommunicator:
 
 if __name__ == "__main__":
     comm = DBCommunicator("db_weed")
+    # comm = DBCommunicator("db14", host = "142.93.163.88",port = 6006, user = "team14", password = "pas1swo4rd")
+
     # print(datetime.date(2019, 9, 9))
-    print("\n".join(str(dict) for dict in comm.get_user_items(min_age=18)))
-    print("\n".join(str(dict) for dict in comm.get_user_orders(user_id=22)))
-    print("\n".join(str(dict) for dict in comm.get_user_feedbacks(user_id=22)))
+    # print("\n".join(str(dict) for dict in comm.get_user_items(min_age=18)))
+    # print("\n".join(str(dict) for dict in comm.get_user_orders(user_id=22)))
+    # print("\n".join(str(dict) for dict in comm.get_user_feedbacks(user_id=22)))
+    print(comm.get_person_id(mail = "wterry@gmail.com", password="Wenday"))

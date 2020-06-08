@@ -1,17 +1,14 @@
-<<<<<<< HEAD
-from flask import Flask, session, redirect, jsonify, request
-from classes.users import Buyer
-from classes import dbCommunicator
-=======
 from flask import Flask, session, redirect, jsonify, request, render_template, url_for
 from utils import get_user_from_session
 
 from classes.users import Buyer, UserRole, Agronom, Admin
 from helper_functions import check_registered, register_new
->>>>>>> origin/master
+
+from classes import dbCommunicator
 
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
+
 comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
 
 @app.route('/', methods=["GET", "POST"])
@@ -195,11 +192,12 @@ def get_goods():
     if user.role == UserRole.BUYER.value:
         min_age = data['minAge']
         min_price = data['minPrice']
-        max_proce = data['maxPrice']
-        # TODO: make request to DB here
-        return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
-                        {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
-                        {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
+        max_price = data['maxPrice']
+        # TODO: make request to DB here 
+        return(jsonify(comm.get_user_items(min_price = min_price, max_price = max_price, min_age = min_age))
+        # return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
+        #                 {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
+        #                 {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
     elif user.role == UserRole.ADMIN.value:
         min_distinct_buyers = data['minDistinctBuyers']
         min_date = data['minDate']
@@ -218,6 +216,7 @@ def get_orders():
         min_date = filters['minDate']
         max_date = filters['maxDate']
         # TODO: Request to db here
+        
         return jsonify(
             ({"id": "1", "name": "Best hemp", "seller": "Ivan", "amount_of_product": 128, "made": "2020-01-01",
               "successful": True},))
