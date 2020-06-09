@@ -36,6 +36,7 @@
                 .then(response => response.json()).then(data => {
                 let list = document.getElementById('view-items');
                 list.innerHTML = '';
+                console.log(data);
                 for (let deal of data) {
                     let item = document.createElement('li');
                     item.classList.add('card-item');

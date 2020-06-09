@@ -47,6 +47,12 @@ class User:
     def render_make_trip(self):
         return abort(404)
 
+    def render_make_degustation(self):
+        return abort(404)
+
+    def render_gather_crop(self):
+        return abort(404)
+
     def render_item_view(self, info: Dict[str, str]):
         return self.render('item_views/item_view.j2', -1, info=info)
 

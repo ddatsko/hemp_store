@@ -260,23 +260,65 @@ def make_trip():
     return user.render_make_trip()
 
 
+@app.route('/make_degustation', methods=['GET'])
+def make_degustation():
+    return get_user_from_session(session).render_make_degustation()
+
+
+@app.route('/gather_crop', methods=['GET'])
+def gather_crop():
+    return get_user_from_session(session).render_gather_crop()
+
+
 #######################################################################
 # ############## API part #############################################
 #######################################################################
 
+@app.route('/gather_crop', methods=['POST'])
+def register_crop():
+    user = get_user_from_session(session)
+    if user.role == UserRole.AGRONOMIST.value:
+        data = request.form
+        date = data['date']
+        amount = data['amount']
+        sort_id = data['sortId']
+        # TODO: Request to DB here
+        if True:
+            return user.render('result_messages/success.j2', -1, message='Урожай успішно зареєстровано')
+    return user.render('result_messages/fail.j2', -1, message="Помилка. Урожай не зареєстровано")
+
+
+
+
+
+@app.route('/make_degustation', methods=['POST'])
+def make_new_degustation():
+    if get_user_from_session(session).role == UserRole.AGRONOMIST.value:
+        data = request.get_json()
+        date = data['date']
+        amount = data['amount']
+        product_id = data['productId']
+        buyer_ids = data['buyerIds']
+        print(data)
+        # TODO: Request to DB here
+        if True:  # If request was successful
+            return make_response('', 200)
+
+    return make_response('', 400)
+
 
 @app.route('/make_trip', methods=['POST'])
 def create_new_trip():
-    data = request.get_json()
-    departion = data['departion']
-    arrival = data['arrival']
-    location = data['location']
-    purpose = data['purpose']
-    agronom_ids = data['agronomIds']
-    print(data)
-    # TODO: request to DB to create trip
-    if True:
-        return make_response('', 200)
+    if get_user_from_session(session).role == UserRole.ADMIN.value:
+        data = request.get_json()
+        departion = data['departion']
+        arrival = data['arrival']
+        location = data['location']
+        purpose = data['purpose']
+        agronom_ids = data['agronomIds']
+        # TODO: request to DB to create trip
+        if True:
+            return make_response('', 200)
     return make_response('', 400)
 
 
@@ -309,6 +351,9 @@ def get_goods():
         min_date = data['minDate']
         max_date = data['maxDate']
         return jsonify(({'id': 4, 'name': 'Best hemp', 'return_percent': '15', 'pack': 1, 'price': 16, 'min_age': 18},))
+    elif user.role == UserRole.AGRONOMIST.value:
+        # TODO: request to DB here. Need only names and ids
+        return jsonify(({'id': 0, 'name': 'Best product'}, {'id': 5, 'name': 'Product 2'}))
 
 
 @app.route('/get_orders', methods=['POST'])
@@ -324,7 +369,7 @@ def get_orders():
         # TODO: Request to db here
         return jsonify(
             ({"id": "1", "name": "Best hemp", "seller": "Ivan", "amount_of_product": 128, "made": "2020-01-01",
-              "successful": True, 'deal_id': 10},))
+              "successful": True, 'deal_id': 10, 'product_id': 10},))
 
 
 @app.route('/get_agronoms', methods=['POST'])
@@ -435,6 +480,9 @@ def get_sorts():
         min_harvesting = data['minHarvesting']
         # TODO: Request to DB here
         return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'},))
+    if user.role == UserRole.AGRONOMIST.value:
+        # TODO request to DB here (need only names and ids)
+        return jsonify(({'id': 0, 'name': 'Cool sort'}, {'id': 5, 'name': 'Aother sort'}))
 
 
 @app.errorhandler(404)

@@ -32,3 +32,4 @@ class Admin(User):
 
     def render_make_trip(self):
         return render_template('item_creations/trip_creation.j2', top_nav_elements=self.top_nav_elements)
+
