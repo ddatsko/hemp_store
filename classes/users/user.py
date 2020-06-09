@@ -1,6 +1,6 @@
 from classes.users.user_role import UserRole
 from flask import redirect
-from flask import render_template
+from flask import render_template, abort
 from typing import Dict
 
 
@@ -18,49 +18,37 @@ class User:
         return redirect('/')
 
     def render_buyers(self):
-        return redirect('/')
+        return abort(404)
 
     def render_orders(self):
-        return redirect('/')
+        return abort(404)
 
     def render_agronoms(self):
-        return redirect('/')
+        return abort(404)
 
     def render_feed_backs(self):
-        return redirect('/')
+        return abort(404)
 
     def render_degustations(self):
-        return redirect('/')
+        return abort(404)
 
     def render_trips(self):
-        return redirect('/')
+        return abort(404)
 
     def render_login(self):
-        return redirect('/')
+        return abort(404)
 
     def render_sorts(self):
-        return redirect('/')
+        return abort(404)
 
     def render_products(self):
-        return redirect('/')
+        return abort(404)
 
-    def render_user(self, info: Dict[str, str]):
-        return self.render_item_view(info)
+    def render_make_trip(self):
+        return abort(404)
 
     def render_item_view(self, info: Dict[str, str]):
-        return self._render('item_views/item_view.j2', -1, info=info)
-
-    def render_hemp(self, info: Dict[str, str]):
-        return self.render_item_view(info)
-
-    def render_product(self, info: Dict[str, str]):
-        return self.render_item_view(info)
-
-    def render_degustation(self, info: Dict[str, str]):
-        return self.render_item_view(info)
-
-    def render_trip(self, info: Dict[str, str]):
-        return self.render_item_view(info)
+        return self.render('item_views/item_view.j2', -1, info=info)
 
     def __dict__(self):
         return {'user_id': self.id,
@@ -68,7 +56,7 @@ class User:
                 'email': self.email,
                 'role': self.role}
 
-    def _render(self, template_filename: str, selected: int, **kwargs):
+    def render(self, template_filename: str, selected: int, **kwargs):
         return render_template(template_filename, top_nav_elements=self.top_nav_elements,
                                left_nav_elements=self.left_nav_elements,
                                selected=selected, full_name=self.full_name, **kwargs)

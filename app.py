@@ -1,4 +1,4 @@
-from flask import Flask, session, redirect, jsonify, request, render_template
+from flask import Flask, session, redirect, jsonify, request, render_template, make_response
 
 from classes.users import Buyer, UserRole, Agronom, Admin
 from helper_functions import check_registered, register_new, get_user_from_session
@@ -128,10 +128,10 @@ def leave_feedback(target_id: int, target: str):
         print("HERE")
         if target == 'agronom':
             # TODO: request to DB to get agronom name by id
-            return user._render('feed_back_forms/feed_back_form.j2', -1, name='Agronom name')
+            return user.render('feed_back_forms/feed_back_form.j2', -1, name='Agronom name')
         elif target == 'product':
             # TODO: request to DB to get product name by id
-            return user._render('feed_back_forms/feed_back_form.j2', -1, name='Product name')
+            return user.render('feed_back_forms/feed_back_form.j2', -1, name='Product name')
     return redirect('/')
 
 
@@ -145,15 +145,15 @@ def save_feedback(target_id: int, target: str):
         if target == 'agronom':
             # TODO: request to DB to save the feed_back
             if True:  # if feed_back saved successfully
-                return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
+                return user.render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
-                return user._render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
+                return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
         elif target == 'product':
             # TODO: request to DB to save the feed_back
             if False:  # if feed_back saved successfully
-                return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
+                return user.render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
-                return user._render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
+                return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
     return redirect('/')
 
 
@@ -211,7 +211,7 @@ def products():
 @app.route('/agronom/<agronom_id>')
 def agronom(agronom_id: int):
     # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
-    return get_user_from_session(session).render_user(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Агроном Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
          'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
 
@@ -219,7 +219,7 @@ def agronom(agronom_id: int):
 @app.route('/buyer/<buyer_id>')
 def buyer(buyer_id: int):
     # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
-    return get_user_from_session(session).render_user(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Покупець Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
          'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
 
@@ -227,21 +227,21 @@ def buyer(buyer_id: int):
 @app.route('/hemp/<hemp_id>')
 def hemp(hemp_id: int):
     # TODO: Request to DB here
-    return get_user_from_session(session).render_hemp(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Cool hemo', 'Days growtime': '125', 'Frost Resistance': 'Good'})  # any items here
 
 
 @app.route('/product/<product_id>')
 def product(product_id: int):
     # TODO: Request to DB here
-    return get_user_from_session(session).render_product(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Cool product', 'Price': '12', 'Pack': '13 шт', 'Min Age': 18})  # any items here
 
 
 @app.route('/degustation/<degustation_id>')
 def degustation(degustation_id: int):
     # TODO: Request to DB here
-    return get_user_from_session(session).render_degustation(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Maybe name of degustation', 'Agronom name': 'Vlad', 'Product name': 'Cool product',
          'Buyers': ['Denys', 'Ostap', 'Anya']})  # any items here
 
@@ -254,20 +254,42 @@ def trip(trip_id: int):
          'Agronoms': ['Denys', 'Ostap', 'Anya']})  # any items here
 
 
+@app.route('/make_trip', methods=['GET'])
+def make_trip():
+    user = get_user_from_session(session)
+    return user.render_make_trip()
+
+
 #######################################################################
 # ############## API part #############################################
 #######################################################################
+
+
+@app.route('/make_trip', methods=['POST'])
+def create_new_trip():
+    data = request.get_json()
+    departion = data['departion']
+    arrival = data['arrival']
+    location = data['location']
+    purpose = data['purpose']
+    agronom_ids = data['agronomIds']
+    print(data)
+    # TODO: request to DB to create trip
+    if True:
+        return make_response('', 200)
+    return make_response('', 400)
+
 
 @app.route('/return/<deal_id>')
 def return_deal(deal_id: int):
     user = get_user_from_session(session)
     # TODO: check if the user made this deal and if it can be returned (date and if not returned already)
     if True:
-        return user._render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
+        return user.render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
     else:
-        return user._render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
-                                                                   "вже не відмінена та чи не пройшло 14 "
-                                                                   "днів з моменту укладання")
+        return user.render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
+                                                                  "вже не відмінена та чи не пройшло 14 "
+                                                                  "днів з моменту укладання")
 
 
 @app.route('/get_goods', methods=['POST'])
@@ -418,7 +440,7 @@ def get_sorts():
 @app.errorhandler(404)
 def page_not_found(e):
     # note that we set the 404 status explicitly
-    return redirect('/')
+    return get_user_from_session(session).render('result_messages/fail.j2', -1, message="Сторінку не знайдено..")
 
 
 if __name__ == '__main__':

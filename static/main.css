@@ -51,6 +51,9 @@ footer {
     line-height: 55px;
 }
 
+.top-nav ul > li {
+    display: inline-block;
+}
 
 .top-nav ul > li > a {
     display: inline-block;

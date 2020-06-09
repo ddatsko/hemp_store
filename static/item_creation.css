@@ -1,0 +1,14 @@
+form.new-item-form label {
+    display: block;
+    margin: 40px 0;
+}
+
+form.new-item-form label .text-selector {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+}
+
+form.new-item-form label input{
+    padding: 4px;
+}
