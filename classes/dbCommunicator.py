@@ -72,6 +72,11 @@ class dbCommunicator:
         self.cursor.commit()
         return 0
 
+    def change_user_cancel_deal(self, deal_id):
+        sql_req = "UPDATE deals\n"+\
+                "SET successful=false\n"+\
+                f"WHERE id={deal_id};"
+
 # #
 #     def get_user_agronoms(self, user_id=None, min_buys=None, max_buys=None, min_degustations=None, max_degustations=None):
 #         sql_req = "SELECT p.id, p.name, p.surname from person inner_join "
@@ -121,6 +126,8 @@ class dbCommunicator:
         degustation_id = self.cursor.fetchone()[0]
         add_admin_degustation_testers(degustation_id, testers)
         return 0
+
+    
     
     # def add_agronom_to_vacation(self, agronom_id, vacation_id):
     #     sql_req = "INSERT INTO vaations(member, vacation)"

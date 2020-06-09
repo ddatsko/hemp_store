@@ -410,8 +410,10 @@ def return_deal(deal_id: int):
     if res:
         deal = res[0]
         can_be_returned = (deal["successfull"])
-        # TODO: make DB request to return deal
+        res = comm.add_user
+        # Done: make DB request to return deal
         if can_be_returned:
+            comm.change_user_cancel_deal(deal["id"])
             return user._render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
     return user._render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
                         "вже не відмінена та чи не пройшло 14 "
