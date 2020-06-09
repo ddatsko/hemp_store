@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hemp-dep
+  labels:
+    app: hemp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hemp
+  template:
+    metadata:
+      labels:
+        app: hemp
+    spec:
+      containers:
+        - name: hemp
+          image: ddatsko/hemp:latest
+          ports:
+            - containerPort: 1200
+            - containerPort: 6006
+          imagePullPolicy: Always

@@ -6,7 +6,7 @@ from classes.users import UserRole
 class Agronom(User):
     top_nav_elements = ({'link': '/make_degustation', 'text': 'Нова дегустація'},
                         {'link': '/gather_crop', 'text': 'Новий врожай'},
-                        {'link': '/logout', 'text': 'Log Out'})
+                        {'link': '/logout', 'text': 'Вийти'})
     left_nav_elements = (
         {'link': '/buyers', 'text': 'Покупці'},
         {'link': '/agronoms', 'text': 'Агрономи'},
