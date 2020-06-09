@@ -1,9 +1,11 @@
 from classes.users import User
 from classes.users import UserRole
+from flask import render_template
 
 
 class Admin(User):
-    top_nav_elements = ({'link': '/logout', 'text': 'Log Out'},)
+    top_nav_elements = ({'link': '/make_trip', 'text': 'Нове відрядження'},
+                        {'link': '/logout', 'text': 'Log Out'})
     left_nav_elements = (
         {'link': '/buyers', 'text': 'Покупці'},
         {'link': '/agronoms', 'text': 'Агрономи'},
@@ -17,17 +19,17 @@ class Admin(User):
         return self.render_buyers()
 
     def render_buyers(self):
-        return self._render('admin/admin_buyers.j2', 0)
+        return self.render('admin/admin_buyers.j2', 0)
 
     def render_agronoms(self):
-        return self._render('admin/admin_agronoms.j2', 1)
+        return self.render('admin/admin_agronoms.j2', 1)
 
     def render_sorts(self):
-        return self._render('admin/admin_sorts.j2', 2)
+        return self.render('admin/admin_sorts.j2', 2)
 
     def render_products(self):
-        return self._render('admin/admin_products.j2', 3)
+        return self.render('admin/admin_products.j2', 3)
 
-
-
+    def render_make_trip(self):
+        return render_template('item_creations/trip_creation.j2', top_nav_elements=self.top_nav_elements)
 

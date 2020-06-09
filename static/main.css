@@ -6,6 +6,7 @@
     font-family: 'PT Sans', Arial, sans-serif;
 }
 
+
 .container {
     width: 70%;
     margin: 0 auto;
@@ -51,6 +52,9 @@ footer {
     line-height: 55px;
 }
 
+.top-nav ul > li {
+    display: inline-block;
+}
 
 .top-nav ul > li > a {
     display: inline-block;

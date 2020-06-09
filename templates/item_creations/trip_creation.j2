@@ -1,0 +1,104 @@
+{% extends 'main.j2' %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='/item_creation.css') }}">
+{% endblock %}
+
+{% block body %}
+    <h2>Створити нове відрядження</h2>
+    <form class="new-item-form" action="/" onsubmit="submitForm(); return true;">
+        <label class="date-selector-label">
+            Виберіть дату виїзду: <input type="date" class="date-selector" id="departion" required>
+        </label>
+        <label class="date-selector-label">
+            Виберіть дату приїзду: <input type="date" class="date-selector" id="arrival" required>
+        </label>
+        <label class="text-selector-label">
+            Введіть місце призначення: <input type="text" class="text-selector" id="location" required>
+        </label>
+        <label class="text-selector-label">
+            Мета поїздки: <input type="text" class="text-selector" id="purpose" required>
+        </label>
+        <label class="select-label">
+            Агрономи, що поїдуть: <select id="agronoms"
+                                          onchange="if (this.selectedIndex) add_agronom(this.selectedIndex - 1);">
+            <option value="" onclick="">-- виберіть агронома --</option>
+        </select>
+        </label>
+        <h3 class="form-selected-list-title">Вибрані агрономи: </h3>
+        <ul class="form-selected-list" id="selected">
+
+        </ul>
+        <button type="submit">Створити відрядження</button>
+
+    </form>
+
+    <script>
+        function submitForm() {
+            let departion = document.getElementById('departion').value;
+            let arrival = document.getElementById('arrival').value;
+            let location = document.getElementById('location').value;
+            let purpose = document.getElementById('purpose').value;
+            let agronomIds = agronoms.map(agronom => agronom.id);
+
+            fetch('/make_trip',
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        'departion': departion,
+                        'arrival': arrival,
+                        'location': location,
+                        'purpose': purpose,
+                        'agronomIds': agronomIds
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.status === 200 ? alert('Відрядження успішно створено') : alert('Сталася помилка. Відрядження не створено'))
+        }
+
+
+        let agronoms = [];
+
+        function add_agronom(selectedIndex) {
+            if (selectedIndex < 0 || selectedIndex >= agronoms.length) return;
+            if (selected_ids.includes(agronoms[selectedIndex].id)) return;
+            selected_ids.push(agronoms[selectedIndex].id);
+            let selected = document.getElementById('selected');
+            let selectedItem = document.createElement('li');
+            selectedItem.innerHTML = agronoms[selectedIndex].full_name;
+            selected.appendChild(selectedItem);
+
+        }
+
+        let selected_ids = [];
+        window.onload = () => {
+            const url = "/get_agronoms";
+            fetch(url,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        'minSorts': 0,
+                        'minDate': '0001-01-01',
+                        'maxDate': '100000-01-01',
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.json()).then(data => {
+                let list = document.getElementById('agronoms');
+                for (let agronom of data) {
+                    agronoms.push({'id': agronom.id, 'full_name': agronom.full_name});
+                    let option = document.createElement('option');
+                    option.setAttribute('value', agronom.id);
+                    option.innerHTML = `${agronom.id} (${agronom.full_name})`;
+                    list.appendChild(option);
+                }
+            })
+        }
+    </script>
+
+{% endblock %}
+

@@ -1,0 +1,120 @@
+{% extends 'main.j2' %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='/item_creation.css') }}">
+{% endblock %}
+
+{% block body %}
+    <h2>Нова дегустація</h2>
+    <form class="new-item-form" action="/" onsubmit="submitForm(); return true;">
+        <label class="date-selector-label">
+            Виберіть дату дегустації: <input type="date" class="date-selector" id="date" required>
+        </label>
+        <label class="text-selector-label">
+            Скільки кілограм продукту буде на дегустації: <input type="number" class="number-selector" id="amount"
+                                                                 required>
+        </label>
+        <label class="select-label">
+            Продукт, що буде дегустуватися: <select id="product"> </select>
+        </label>
+        <label class="select-label">
+            Покупці, що будуть присутні: <select id="buyers"
+                                          onchange="if (this.selectedIndex) add_buyers(this.selectedIndex - 1);">
+            <option value="" onclick="">-- виберіть покупця --</option>
+        </select>
+        </label>
+        <h3 class="form-selected-list-title">Вибрані покупці: </h3>
+        <ul class="form-selected-list" id="selected">
+
+        </ul>
+        <button type="submit">Створити дегустацію</button>
+
+    </form>
+
+    <script>
+        function submitForm() {
+            let date = document.getElementById('date').value;
+            let amount = document.getElementById('amount').value;
+            let productId = document.getElementById('product').value;
+            let buyerIds = buyers.map(buyer => buyer.id);
+
+            fetch('/make_degustation',
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        'date': date,
+                        'amount': amount,
+                        'productId': productId,
+                        'buyerIds': buyerIds
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.status === 200 ? alert('Відрядження успішно створено') : alert('Сталася помилка. Відрядження не створено'))
+        }
+
+
+        let buyers = [];
+
+        function add_buyers(selectedIndex) {
+            if (selectedIndex < 0 || selectedIndex >= buyers.length) return;
+            if (selected_ids.includes(buyers[selectedIndex].id)) return;
+            selected_ids.push(buyers[selectedIndex].id);
+            let selected = document.getElementById('selected');
+            let selectedItem = document.createElement('li');
+            selectedItem.innerHTML = buyers[selectedIndex].full_name;
+            selected.appendChild(selectedItem);
+
+        }
+
+        let selected_ids = [];
+        window.onload = () => {
+            fetch("/get_goods",
+                {
+                    method: "POST",
+                    credentials: 'same-origin',
+                    body: JSON.stringify({}),
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.json()).then(data => {
+                    let productList = document.getElementById('product');
+                    for (let product of data) {
+                        let item = document.createElement('option');
+                        item.setAttribute('value', product.id);
+                        item.innerHTML = `${product.id} (${product.name})`;
+                        productList.appendChild(item);
+                    }
+            });
+
+            fetch("/get_buyers",
+                {
+                    method: "POST",
+                 body: JSON.stringify({
+                        'minBuys': 0,
+                        'maxBuys': 100000000,
+                        'minDate': '0001-01-01',
+                        'maxDate': '100000-01-01'
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.json()).then(data => {
+                let list = document.getElementById('buyers');
+                for (let buyer of data) {
+                    buyers.push({'id': buyer.id, 'full_name': buyer.full_name});
+                    let option = document.createElement('option');
+                    option.setAttribute('value', buyer.id);
+                    option.innerHTML = `${buyer.id} (${buyer.full_name})`;
+                    list.appendChild(option);
+                }
+            })
+
+
+        }
+    </script>
+
+{% endblock %}
+

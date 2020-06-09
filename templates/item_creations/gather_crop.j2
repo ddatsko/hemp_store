@@ -1,0 +1,47 @@
+{% extends 'main.j2' %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='/item_creation.css') }}">
+{% endblock %}
+
+{% block body %}
+    <h2>Зареєструвати зібраний урожай</h2>
+    <form class="new-item-form" method="post">
+        <label class="date-selector-label">
+            Виберіть дату збору: <input type="date" class="date-selector" id="date" name="date" required>
+        </label>
+        <label class="number-selector-label">
+            Введіть кількість (в кг.): <input type="number" class="number-selector" id="amount" name="amount" required>
+        </label>
+        <label class="select-label">
+            Виберіть сорт: <select id="sort-id" name="sortId"> </select>
+        </label>
+
+        <button type="submit">Зареєструвати</button>
+
+    </form>
+
+    <script>
+        window.onload = () => {
+            fetch("/get_sorts",
+                {
+                    method: "POST",
+                    credentials: 'same-origin',
+                    body: JSON.stringify({}),
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.json()).then(data => {
+                    let sortList = document.getElementById('sort-id');
+                    for (let sort of data) {
+                        let item = document.createElement('option');
+                        item.setAttribute('value', sort.id);
+                        item.innerHTML = `${sort.id} (${sort.name})`;
+                        sortList.appendChild(item);
+                    }
+            });
+        }
+    </script>
+
+{% endblock %}
+

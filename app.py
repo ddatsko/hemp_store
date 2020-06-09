@@ -1,4 +1,4 @@
-from flask import Flask, session, redirect, jsonify, request, render_template
+from flask import Flask, session, redirect, jsonify, request, render_template, make_response
 
 
 from classes.dbCommunicator import dbCommunicator
@@ -163,14 +163,14 @@ def save_feedback(target_id: int, target: str):
             if (res==0):  # if feed_back saved successfully
                 return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
-                return user._render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
+                return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
         elif target == 'product':
             # TODO: request to DB to save the feed_back
             res = comm.add_user_feedback(user_id = user.id, message = message, product=target_id)
             if (res==0):  # if feed_back saved successfully
                 return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
-                return user._render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
+                return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
     return redirect('/')
 
 
@@ -228,8 +228,7 @@ def products():
 @app.route('/agronom/<agronom_id>')
 def agronom(agronom_id: int):
     # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
-    # user = comm.get_admin_person
-    return get_user_from_session(session).render_user(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Агроном Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
          'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
 
@@ -237,7 +236,7 @@ def agronom(agronom_id: int):
 @app.route('/buyer/<buyer_id>')
 def buyer(buyer_id: int):
     # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
-    return get_user_from_session(session).render_user(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Покупець Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
          'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
 
@@ -249,7 +248,7 @@ def hemp(hemp_id: int):
     # return get_user_from_session(session).render_hemp(
     #     {'item_name': 'Cool hemo', 'Days growtime': '125', 'Frost Resistance': 'Good'})  # any items here
     if(res):
-        return get_user_from_session(session).render_hemp(res[0])  # any items here
+        return get_user_from_session(session).render_item_view(res[0])  # any items here
     else:
         return None
         # TODO: handle inexistent id
@@ -260,7 +259,7 @@ def product(product_id: int):
     # Done: Request to DB here
     res = comm.get_admin_items(id=product_id)
     if(res):
-        return get_user_from_session(session).render_product(res[0])  # any items here
+        return get_user_from_session(session).render_item_view(res[0])  # any items here
     else:
         return None
         # TODO: handle inexistent id
@@ -271,7 +270,7 @@ def product(product_id: int):
 @app.route('/degustation/<degustation_id>')
 def degustation(degustation_id: int):
     # TODO: Request to DB here
-    return get_user_from_session(session).render_degustation(
+    return get_user_from_session(session).render_item_view(
         {'item_name': 'Maybe name of degustation', 'Agronom name': 'Vlad', 'Product name': 'Cool product',
          'Buyers': ['Denys', 'Ostap', 'Anya']})  # any items here
 
@@ -284,9 +283,73 @@ def trip(trip_id: int):
          'Agronoms': ['Denys', 'Ostap', 'Anya']})  # any items here
 
 
+@app.route('/make_trip', methods=['GET'])
+def make_trip():
+    user = get_user_from_session(session)
+    return user.render_make_trip()
+
+
+@app.route('/make_degustation', methods=['GET'])
+def make_degustation():
+    return get_user_from_session(session).render_make_degustation()
+
+
+@app.route('/gather_crop', methods=['GET'])
+def gather_crop():
+    return get_user_from_session(session).render_gather_crop()
+
+
 #######################################################################
 # ############## API part #############################################
 #######################################################################
+
+@app.route('/gather_crop', methods=['POST'])
+def register_crop():
+    user = get_user_from_session(session)
+    if user.role == UserRole.AGRONOMIST.value:
+        data = request.form
+        date = data['date']
+        amount = data['amount']
+        sort_id = data['sortId']
+        # TODO: Request to DB here
+        if True:
+            return user.render('result_messages/success.j2', -1, message='Урожай успішно зареєстровано')
+    return user.render('result_messages/fail.j2', -1, message="Помилка. Урожай не зареєстровано")
+
+
+
+
+
+@app.route('/make_degustation', methods=['POST'])
+def make_new_degustation():
+    if get_user_from_session(session).role == UserRole.AGRONOMIST.value:
+        data = request.get_json()
+        date = data['date']
+        amount = data['amount']
+        product_id = data['productId']
+        buyer_ids = data['buyerIds']
+        print(data)
+        # TODO: Request to DB here
+        if True:  # If request was successful
+            return make_response('', 200)
+
+    return make_response('', 400)
+
+
+@app.route('/make_trip', methods=['POST'])
+def create_new_trip():
+    if get_user_from_session(session).role == UserRole.ADMIN.value:
+        data = request.get_json()
+        departion = data['departion']
+        arrival = data['arrival']
+        location = data['location']
+        purpose = data['purpose']
+        agronom_ids = data['agronomIds']
+        # TODO: request to DB to create trip
+        if True:
+            return make_response('', 200)
+    return make_response('', 400)
+
 
 @app.route('/return/<deal_id>')
 def return_deal(deal_id: int):
@@ -322,6 +385,9 @@ def get_goods():
         min_date = data['minDate']
         max_date = data['maxDate']
         return jsonify(({'id': 4, 'name': 'Best hemp', 'return_percent': '15', 'pack': 1, 'price': 16, 'min_age': 18},))
+    elif user.role == UserRole.AGRONOMIST.value:
+        # TODO: request to DB here. Need only names and ids
+        return jsonify(({'id': 0, 'name': 'Best product'}, {'id': 5, 'name': 'Product 2'}))
 
 
 @app.route('/get_orders', methods=['POST'])
@@ -451,12 +517,15 @@ def get_sorts():
         min_harvesting = data['minHarvesting']
         # TODO: Request to DB here
         return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'},))
+    if user.role == UserRole.AGRONOMIST.value:
+        # TODO request to DB here (need only names and ids)
+        return jsonify(({'id': 0, 'name': 'Cool sort'}, {'id': 5, 'name': 'Aother sort'}))
 
 
 @app.errorhandler(404)
 def page_not_found(e):
     # note that we set the 404 status explicitly
-    return redirect('/')
+    return get_user_from_session(session).render('result_messages/fail.j2', -1, message="Сторінку не знайдено..")
 
 
 if __name__ == '__main__':
