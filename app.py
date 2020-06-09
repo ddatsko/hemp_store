@@ -1,11 +1,17 @@
 from flask import Flask, session, redirect, jsonify, request, render_template, make_response
 
-from classes.users import Buyer, UserRole, Agronom, Admin
-from helper_functions import check_registered, register_new, get_user_from_session
 
+from classes.dbCommunicator import dbCommunicator
+
+# app = Flask(__name__)
 app = Flask(__name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
+# comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
+comm = dbCommunicator("db14", host = "142.93.163.88",port = 6006, user = "team14", password = "pas1swo4rd")
+
+from classes.users import Buyer, UserRole, Agronom, Admin
+from helper_functions import check_registered, register_new, get_user_from_session
 
 @app.route('/', methods=["GET", "POST"])
 def render_welcome():
@@ -127,11 +133,20 @@ def leave_feedback(target_id: int, target: str):
         user = get_user_from_session(session)
         print("HERE")
         if target == 'agronom':
-            # TODO: request to DB to get agronom name by id
-            return user.render('feed_back_forms/feed_back_form.j2', -1, name='Agronom name')
+            # Done: request to DB to get agronom name by id
+            # TODO: Handle if there is no such person
+            person = comm.get_admin_person(id = target_id)
+            if(person):
+                return user._render('feed_back_forms/feed_back_form.j2', -1, name=person[0]["name"])
+            return None
+            # return user._render('feed_back_forms/feed_back_form.j2', -1, name='Agronom name')
         elif target == 'product':
-            # TODO: request to DB to get product name by id
-            return user.render('feed_back_forms/feed_back_form.j2', -1, name='Product name')
+            # Done: request to DB to get product name by id
+            # TODO: Handle if there is no such product :1
+            product = comm.get_admin_items(id = target_id)
+            if(product):
+                return user._render('feed_back_forms/feed_back_form.j2', -1, name=product[0]["name"])
+            return None
     return redirect('/')
 
 
@@ -143,15 +158,17 @@ def save_feedback(target_id: int, target: str):
         grade = request.form['grade']
         print(message, grade)
         if target == 'agronom':
-            # TODO: request to DB to save the feed_back
-            if True:  # if feed_back saved successfully
-                return user.render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
+            # Done: request to DB to save the feed_back
+            res = comm.add_user_feedback(user_id = user.id, message = message, agronom=target_id)
+            if (res==0):  # if feed_back saved successfully
+                return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
                 return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
         elif target == 'product':
             # TODO: request to DB to save the feed_back
-            if False:  # if feed_back saved successfully
-                return user.render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
+            res = comm.add_user_feedback(user_id = user.id, message = message, product=target_id)
+            if (res==0):  # if feed_back saved successfully
+                return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
                 return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
     return redirect('/')
@@ -226,16 +243,28 @@ def buyer(buyer_id: int):
 
 @app.route('/hemp/<hemp_id>')
 def hemp(hemp_id: int):
-    # TODO: Request to DB here
-    return get_user_from_session(session).render_item_view(
-        {'item_name': 'Cool hemo', 'Days growtime': '125', 'Frost Resistance': 'Good'})  # any items here
+    # Done: Request to DB here
+    res = comm.get_admin_items(id = hemp_id)
+    # return get_user_from_session(session).render_hemp(
+    #     {'item_name': 'Cool hemo', 'Days growtime': '125', 'Frost Resistance': 'Good'})  # any items here
+    if(res):
+        return get_user_from_session(session).render_item_view(res[0])  # any items here
+    else:
+        return None
+        # TODO: handle inexistent id
 
 
 @app.route('/product/<product_id>')
 def product(product_id: int):
-    # TODO: Request to DB here
-    return get_user_from_session(session).render_item_view(
-        {'item_name': 'Cool product', 'Price': '12', 'Pack': '13 шт', 'Min Age': 18})  # any items here
+    # Done: Request to DB here
+    res = comm.get_admin_items(id=product_id)
+    if(res):
+        return get_user_from_session(session).render_item_view(res[0])  # any items here
+    else:
+        return None
+        # TODO: handle inexistent id
+    # return get_user_from_session(session).render_product(
+    #     {'item_name': 'Cool product', 'Price': '12', 'Pack': '13 шт', 'Min Age': 18})  # any items here
 
 
 @app.route('/degustation/<degustation_id>')
@@ -325,13 +354,17 @@ def create_new_trip():
 @app.route('/return/<deal_id>')
 def return_deal(deal_id: int):
     user = get_user_from_session(session)
-    # TODO: check if the user made this deal and if it can be returned (date and if not returned already)
-    if True:
-        return user.render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
-    else:
-        return user.render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
-                                                                  "вже не відмінена та чи не пройшло 14 "
-                                                                  "днів з моменту укладання")
+    # Done: check if the user made this deal and if it can be returned (date and if not returned already)
+    res = comm.get_admin_deal(id=deal_id, buyer=user.id)
+    if res:
+        deal = res[0]
+        can_be_returned =  (deal["successfull"])
+        # TODO: make DB request to return deal
+        if can_be_returned:
+            return user._render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
+    return user._render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
+                                                                    "вже не відмінена та чи не пройшло 14 "
+                                                                    "днів з моменту укладання")
 
 
 @app.route('/get_goods', methods=['POST'])
@@ -342,10 +375,11 @@ def get_goods():
         min_age = data['minAge']
         min_price = data['minPrice']
         max_price = data['maxPrice']
-        # TODO: make request to DB here
-        return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
-                        {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
-                        {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
+        # Done: make request to DB here 
+        return(jsonify(comm.get_user_items(min_price = min_price, max_price = max_price, min_age = min_age)))
+        # return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
+        #                 {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
+        #                 {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
     elif user.role == UserRole.ADMIN.value:
         min_distinct_buyers = data['minDistinctBuyers']
         min_date = data['minDate']
@@ -366,10 +400,11 @@ def get_orders():
         # Обережно з формаом дати. В запиті вона у форматі "yyyy-mm-dd"
         min_date = filters['minDate']
         max_date = filters['maxDate']
-        # TODO: Request to db here
-        return jsonify(
-            ({"id": "1", "name": "Best hemp", "seller": "Ivan", "amount_of_product": 128, "made": "2020-01-01",
-              "successful": True, 'deal_id': 10, 'product_id': 10},))
+        # Done: Request to db here
+        return jsonify(comm.get_user_orders(user_id, min_date, max_date))
+        # return jsonify(
+        #     ({"id": "1", "name": "Best hemp", "seller": "Ivan", "amount_of_product": 128, "made": "2020-01-01",
+        #       "successful": True},))
 
 
 @app.route('/get_agronoms', methods=['POST'])
@@ -383,6 +418,7 @@ def get_agronoms():
         min_degustations = data['minDegustations']
         max_degustations = data['maxDegustations']
         # TODO: request to DB, using fields above here
+        # res = comm.
         return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "buys": 10,
                          "degustations": 1},))
     elif user.role == UserRole.AGRONOMIST.value:
@@ -406,15 +442,16 @@ def get_feed_backs():
     if user.role == UserRole.BUYER.value:  # Бо різні запити до БД для покупця і, наприклад, агронома
         user_id = user.id
         data = request.get_json()
-        min_data = data['minDate']
+        min_date = data['minDate']
         max_date = data['maxDate']
-        # TODO: make request to DB here, using above fields
-        return jsonify(({"id": 0, "agronom_name": "Ostap",
-                         "message": "Good Good Good. I loved this hemp. The agronom is super cool",
-                         "product_name": "Cool hemp"},
-                        {"id": 0, "agronom_name": "Ostap",
-                         "message": "Good Good Good. I loved this hemp. The agronom is super cool",
-                         "product_name": "Cool hemp"}))
+        # Done: make request to DB here, using above fields
+        return(jsonify(comm.get_user_feedbacks(user_id, date_from=min_date, date_to = max_date)))
+        # return jsonify(({"id": 0, "agronom_name": "Ostap",
+        #                  "message": "Good Good Good. I loved this hemp. The agronom is super cool",
+        #                  "product_name": "Cool hemp"},
+        #                 {"id": 0, "agronom_name": "Ostap",
+        #                  "message": "Good Good Good. I loved this hemp. The agronom is super cool",
+        #                  "product_name": "Cool hemp"}))
 
 
 @app.route('/get_degustations', methods=['POST'])
