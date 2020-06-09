@@ -1,0 +1,28 @@
+.item-info {
+    display: inline-block;
+    padding-left: 50px;
+    vertical-align: top;
+    width: 45%;
+    text-align: center;
+}
+
+img.item-photo {
+    display: inline-block;
+    width: 50%;
+    margin: 0 auto;
+}
+
+ul.info {
+    text-align: left;
+    list-style: none;
+    font-size: 18px;
+}
+
+.key {
+    color: #888;
+}
+
+.sub-list {
+    text-indent: 2em;
+    list-style: none;
+}

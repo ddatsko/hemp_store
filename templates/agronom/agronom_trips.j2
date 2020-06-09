@@ -15,6 +15,7 @@
     </form>
 
     <script>
+        window.onload = (event) => getItems();
         async function getItems() {
             let minDate = document.getElementById('min-date').value || '0001-01-01';
             let maxDate = document.getElementById('max-date').value || '100000-01-01';

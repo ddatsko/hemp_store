@@ -1,12 +1,12 @@
-from flask import Flask, session, redirect, jsonify, request, render_template, url_for
-from utils import get_user_from_session
+from flask import Flask, session, redirect, jsonify, request, render_template
 
 from classes.users import Buyer, UserRole, Agronom, Admin
-from helper_functions import check_registered, register_new
+from helper_functions import check_registered, register_new, get_user_from_session
 
 from classes import dbCommunicator
 
-app = Flask(__name__)
+# app = Flask(__name__)
+app = Flask(__name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
 # comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
@@ -83,7 +83,7 @@ def process_b_reg():
 
 @app.route('/buyer_register', methods=["POST"])
 def process_b_reg_response():
-    # processes agro registration
+    # processes agronom registration
     session.clear()
     name = request.form['name']
     surname = request.form['surname']
@@ -127,16 +127,46 @@ def process_s_reg_response():
         return render_template("register/failed_register.html")
 
 
+@app.route('/leave_feed_back/<target>/<target_id>', methods=['GET'])
+def leave_feedback(target_id: int, target: str):
+    if get_user_from_session(session).role == UserRole.BUYER.value:
+        user = get_user_from_session(session)
+        print("HERE")
+        if target == 'agronom':
+            # TODO: request to DB to get agronom name by id
+            return user._render('feed_back_forms/feed_back_form.j2', -1, name='Agronom name')
+        elif target == 'product':
+            # TODO: request to DB to get product name by id
+            return user._render('feed_back_forms/feed_back_form.j2', -1, name='Product name')
+    return redirect('/')
+
+
+@app.route('/leave_feed_back/<target>/<target_id>', methods=['POST'])
+def save_feedback(target_id: int, target: str):
+    if get_user_from_session(session).role == UserRole.BUYER.value:
+        user = get_user_from_session(session)
+        message = request.form['message']
+        grade = request.form['grade']
+        print(message, grade)
+        if target == 'agronom':
+            # TODO: request to DB to save the feed_back
+            if True:  # if feed_back saved successfully
+                return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
+            else:
+                return user._render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
+        elif target == 'product':
+            # TODO: request to DB to save the feed_back
+            if False:  # if feed_back saved successfully
+                return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
+            else:
+                return user._render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
+    return redirect('/')
+
+
 @app.route('/logout')
 def log_out():
     session.clear()
     return redirect('/')
-
-
-@app.route('/buy')
-def buy_hemp():
-    user = get_user_from_session(session)
-    return user.render_buyers()
 
 
 @app.route('/orders')
@@ -182,13 +212,72 @@ def sorts():
 @app.route('/products')
 def products():
     return get_user_from_session(session).render_products()
+
+
+@app.route('/agronom/<agronom_id>')
+def agronom(agronom_id: int):
+    # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
+    return get_user_from_session(session).render_user(
+        {'item_name': 'Агроном Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
+         'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
+
+
+@app.route('/buyer/<buyer_id>')
+def buyer(buyer_id: int):
+    # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
+    return get_user_from_session(session).render_user(
+        {'item_name': 'Покупець Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
+         'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
+
+
+@app.route('/hemp/<hemp_id>')
+def hemp(hemp_id: int):
+    # TODO: Request to DB here
+    return get_user_from_session(session).render_hemp(
+        {'item_name': 'Cool hemo', 'Days growtime': '125', 'Frost Resistance': 'Good'})  # any items here
+
+
+@app.route('/product/<product_id>')
+def product(product_id: int):
+    # TODO: Request to DB here
+    return get_user_from_session(session).render_product(
+        {'item_name': 'Cool product', 'Price': '12', 'Pack': '13 шт', 'Min Age': 18})  # any items here
+
+
+@app.route('/degustation/<degustation_id>')
+def degustation(degustation_id: int):
+    # TODO: Request to DB here
+    return get_user_from_session(session).render_degustation(
+        {'item_name': 'Maybe name of degustation', 'Agronom name': 'Vlad', 'Product name': 'Cool product',
+         'Buyers': ['Denys', 'Ostap', 'Anya']})  # any items here
+
+
+@app.route('/trip/<trip_id>')
+def trip(trip_id: int):
+    # TODO: Request to DB here
+    return get_user_from_session(session).render_trip(
+        {'item_name': 'Ternopil', 'Date': '2020-01-01', 'Purpose': 'Degustation of Vlad`s hemp',
+         'Agronoms': ['Denys', 'Ostap', 'Anya']})  # any items here
+
+
 #######################################################################
 # ############## API part #############################################
 #######################################################################
 
+@app.route('/return/<deal_id>')
+def return_deal(deal_id: int):
+    user = get_user_from_session(session)
+    # TODO: check if the user made this deal and if it can be returned (date and if not returned already)
+    if True:
+        return user._render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
+    else:
+        return user._render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
+                                                                   "вже не відмінена та чи не пройшло 14 "
+                                                                   "днів з моменту укладання")
+
+
 @app.route('/get_goods', methods=['POST'])
 def get_goods():
-
     data = request.get_json()
     user = get_user_from_session(session)
     if user.role == UserRole.BUYER.value:
@@ -196,7 +285,7 @@ def get_goods():
         min_price = data['minPrice']
         max_price = data['maxPrice']
         # TODO: make request to DB here 
-        return(jsonify(comm.get_user_items(min_price = min_price, max_price = max_price, min_age = min_age))
+        return(jsonify(comm.get_user_items(min_price = min_price, max_price = max_price, min_age = min_age)))
         # return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
         #                 {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
         #                 {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
@@ -332,8 +421,13 @@ def get_sorts():
         max_date = data['maxDate']
         min_harvesting = data['minHarvesting']
         # TODO: Request to DB here
-        return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'}, ))
+        return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'},))
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return redirect('/')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 from classes.users.user_role import UserRole
 from flask import redirect
 from flask import render_template
+from typing import Dict
 
 
 class User:
@@ -43,13 +44,31 @@ class User:
     def render_products(self):
         return redirect('/')
 
+    def render_user(self, info: Dict[str, str]):
+        return self.render_item_view(info)
+
+    def render_item_view(self, info: Dict[str, str]):
+        return self._render('item_views/item_view.j2', -1, info=info)
+
+    def render_hemp(self, info: Dict[str, str]):
+        return self.render_item_view(info)
+
+    def render_product(self, info: Dict[str, str]):
+        return self.render_item_view(info)
+
+    def render_degustation(self, info: Dict[str, str]):
+        return self.render_item_view(info)
+
+    def render_trip(self, info: Dict[str, str]):
+        return self.render_item_view(info)
+
     def __dict__(self):
         return {'user_id': self.id,
                 'full_name': self.full_name,
                 'email': self.email,
                 'role': self.role}
 
-    def _render(self, template_filename: str, selected: int):
+    def _render(self, template_filename: str, selected: int, **kwargs):
         return render_template(template_filename, top_nav_elements=self.top_nav_elements,
                                left_nav_elements=self.left_nav_elements,
-                               selected=selected, full_name=self.full_name)
+                               selected=selected, full_name=self.full_name, **kwargs)
