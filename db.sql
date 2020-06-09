@@ -67,7 +67,7 @@ create table deals(
 );
 
 create table testing_table(
-    id serial,
+    id serial primary key ,
     seller serial,
     tester serial,
     made date,
@@ -119,6 +119,13 @@ create table store_and_spend(
     operation_day date default '01/01/2010',
     foreign key (owner) references agronom (id),
     foreign key (sort) references hemp (sort_id)
+);
+
+create table degustations(
+    deal_id serial,
+    tester_id serial,
+    foreign key (deal_id) references testing_table(id),
+    foreign key (tester_id) references buyer(id)
 );
 
 create table vacation(
@@ -212,6 +219,20 @@ insert into agronom (id, debt, reputation)
        (19, 0, 0),
        (20, 0, 0),
        (21, 0, 0);
+
+insert into degustations (deal_id, tester_id)
+    values
+       (1, 22),
+       (2, 23),
+       (3, 24),
+       (4, 25),
+       (5, 26),
+       (6, 27),
+       (7, 28),
+       (8, 29),
+       (9, 29),
+       (10, 30),
+       (11, 31);
 
 insert into buyer (id, money)
     values
@@ -449,72 +470,3 @@ create INDEX testing_index on testing_table(id, seller, tester, made, successful
 -- drop table vacations cascade;
 -- drop table ingredients cascade;
 -- drop table admin cascade;
-
--- Query 1
--- Arguments: number 1 - N times that were sold; number 15 - particular agronom id we are interested in; dates - timeframes
-select distinct buyer, b.name, b.surname from deals inner join agronom on deals.seller = agronom.id inner join person p on agronom.id = p.id inner join person b on deals.buyer = b.id
-group by buyer, made, b.name, b.surname, seller HAVING count(buyer) >= 1 and seller = 20 and made > '01/01/2000' and made < '01/01/2020';
-
--- Query 2
--- Arguments: 31 - particular buyer id we are interested in; dates - timeframes
-select distinct item, p.name from deals inner join buyer on deals.buyer = buyer.id inner join product p on deals.item = p.id where buyer.id = 31
-                                                                    and made > '01/01/2000' and made < '01/01/2020';
-
--- Query 3
--- Arguments: 3 - N times product was tested, 23 particular consumer id;
-select distinct agronom.id, p.name, p.surname from agronom inner join testing_table on agronom.id = testing_table.seller inner join person p on agronom.id = p.id
-where  tester = 25 group by agronom.id, p.name, p.surname, made HAVING count(agronom.id) >= 1 and made > '01/01/2000' and made < '01/01/2020';
-
--- Query 4
--- Arguments:
-select distinct vacations.member from
-        vacations
-    inner join
-        (select distinct with_agronom.id as vacation from
-            (select distinct vacation as id from vacations where member = 11)with_agronom
-                inner join
-            (select distinct id from vacation where (departion>'2010-01-01' and arrival<'2020-01-01'))within_date
-            on with_agronom.id = within_date.id
-        )chosen
-    on vacations.vacation = chosen.vacation
-
--- Query 5
--- Arguments: 31 particular consumer id;
-select distinct coalesce( deals.seller, tt.seller ) from deals inner join testing_table tt on deals.seller = tt.seller where deals.buyer = 31 or tt.tester = 31
-and ( tt.made > '01/01/2000' or deals.made > '01/01/2000') and ( tt.made < '01/01/2022' or deals.made < '01/01/2022');
-
--- Query 6
--- Arguments: Number 2 - N items, we are interested in.
-select buyer, p.name, p.surname from deals inner join person p on deals.buyer = p.id where made > '01/01/2000' and made < '01/01/2021' group by buyer, p.name, p.surname having count( distinct item ) >= 2;
-
--- Query 7
--- Arguments: 2 - N parameter in definition.
-select owner, p.name, p.surname from store_and_spend inner join person p on p.id = owner where
-take = false and operation_day > '01/01/2000' and operation_day < '01/01/2022'
-group by owner, p.name, p.surname having count( distinct sort ) >= 2;
-
--- Query 8
--- Arguments: 25 - agronom id; 15 - buyer id.
-select id from testing_table where tester = 25 and seller = 15 and made > '01/01/2000' and made < '01/01/2021';
-
--- Query 9 Not sure!
--- Arguments: 2 - N testers according to definition
-select product, count( tester ) from testing_table where made > '01/01/2000' and made < '01/01/2021'
-group by product having count( distinct tester ) > 2;
-
--- Query 10:
--- Arguments: 22 - id of the author we are interested in
-select extract(month from made) as month, count(author) as feedbacks
-from feed_back where author = 22 and made > '01/01/1999' and made < '01/01/2021' group by author, made;
-
--- Query 11:
--- Arguments: 2 - N parameter in definition
-select current_sort, p.name, cast (a.harvest_taken as decimal) / count(current_sort) as harvest_per_vacations from vacation inner join vacations v on vacation.id = v.vacation inner join field f on vacation.destination = f.id inner join product p on p.id = current_sort
-inner join (select sort, count(sort) as harvest_taken from store_and_spend group by sort) as a on current_sort = a.sort
-where arrival > '01/01/2000' and arrival < '01/01/2025'
-group by p.name, current_sort, a.harvest_taken  having count(current_sort) >= 2 order by harvest_per_vacations;
-
--- Query 12:
--- Arguments: 2 - M parameter in problem definition
-select item, p.name from deals inner join product p on p.id = item where made > '01/01/2000' and made < '01/01/2021' group by p.name, deals.item having count( distinct buyer ) >= 2
-order by cast( count(*) filter (where not successful) as decimal ) / count(*) desc ;
