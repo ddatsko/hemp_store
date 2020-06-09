@@ -4,7 +4,7 @@ from flask import Flask, session, redirect, jsonify, request, render_template, m
 from classes.dbCommunicator import dbCommunicator
 
 # app = Flask(__name__)
-app = Flask(__name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
+app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
 # comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
