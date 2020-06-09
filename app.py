@@ -1,17 +1,19 @@
+from helper_functions import check_registered, register_new, get_user_from_session
+from classes.users import Buyer, UserRole, Agronom, Admin
 from flask import Flask, session, redirect, jsonify, request, render_template, make_response
 
 
 from classes.dbCommunicator import dbCommunicator
 
 # app = Flask(__name__)
-app = Flask(__name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
+app = Flask(
+    __name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
 # comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
-comm = dbCommunicator("db14", host = "142.93.163.88",port = 6006, user = "team14", password = "pas1swo4rd")
+comm = dbCommunicator("db14", host="142.93.163.88",
+                      port=6006, user="team14", password="pas1swo4rd")
 
-from classes.users import Buyer, UserRole, Agronom, Admin
-from helper_functions import check_registered, register_new, get_user_from_session
 
 @app.route('/', methods=["GET", "POST"])
 def render_welcome():
@@ -39,7 +41,8 @@ def process_input():
         if mail == 'admin@gmail.com':
             session['user'] = Admin(0, 'Denys', 'admin@gmail.com').__dict__()
         elif mail == 'agronom@gmail.com':
-            session['user'] = Agronom(0, 'Denys', 'agronom@gmail.com').__dict__()
+            session['user'] = Agronom(
+                0, 'Denys', 'agronom@gmail.com').__dict__()
         else:
             session['user'] = Buyer(0, 'Name Surname', 'email').__dict__()
         return redirect('/')
@@ -135,7 +138,7 @@ def leave_feedback(target_id: int, target: str):
         if target == 'agronom':
             # Done: request to DB to get agronom name by id
             # TODO: Handle if there is no such person
-            person = comm.get_admin_person(id = target_id)
+            person = comm.get_admin_person(id=target_id)
             if(person):
                 return user._render('feed_back_forms/feed_back_form.j2', -1, name=person[0]["name"])
             return None
@@ -143,7 +146,7 @@ def leave_feedback(target_id: int, target: str):
         elif target == 'product':
             # Done: request to DB to get product name by id
             # TODO: Handle if there is no such product :1
-            product = comm.get_admin_items(id = target_id)
+            product = comm.get_admin_items(id=target_id)
             if(product):
                 return user._render('feed_back_forms/feed_back_form.j2', -1, name=product[0]["name"])
             return None
@@ -159,15 +162,17 @@ def save_feedback(target_id: int, target: str):
         print(message, grade)
         if target == 'agronom':
             # Done: request to DB to save the feed_back
-            res = comm.add_user_feedback(user_id = user.id, message = message, agronom=target_id)
-            if (res==0):  # if feed_back saved successfully
+            res = comm.add_user_feedback(
+                user_id=user.id, message=message, agronom=target_id)
+            if (res == 0):  # if feed_back saved successfully
                 return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
                 return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
         elif target == 'product':
-            # TODO: request to DB to save the feed_back
-            res = comm.add_user_feedback(user_id = user.id, message = message, product=target_id)
-            if (res==0):  # if feed_back saved successfully
+            # Done: request to DB to save the feed_back
+            res = comm.add_user_feedback(
+                user_id=user.id, message=message, product=target_id)
+            if (res == 0):  # if feed_back saved successfully
                 return user._render('result_messages/success.j2', -1, message='Відгук залишено успішно!')
             else:
                 return user.render('result_messages/fail.j2', -1, message='Упс.. З відгуком виникли проблеми!')
@@ -227,28 +232,40 @@ def products():
 
 @app.route('/agronom/<agronom_id>')
 def agronom(agronom_id: int):
-    # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
-    return get_user_from_session(session).render_item_view(
-        {'item_name': 'Агроном Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
-         'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
+    # Done: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
+    res = comm.get_admin_agronom()
+    if(res):
+        return get_user_from_session(session).render_item_view({**{'item_name': " ".join(['Агроном', res[0]["name"], res[0]["surname"]])}, **res[0]})
+        # {'item_name': 'Агроном Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
+        # 'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
+    else:
+        return None
+        # TODO: handle inexistent id
 
 
 @app.route('/buyer/<buyer_id>')
 def buyer(buyer_id: int):
-    # TODO: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
-    return get_user_from_session(session).render_item_view(
-        {'item_name': 'Покупець Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
-         'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
+    # Done: Request to DB here. Note: dict can contain any keys. All will be displayed. Only item_name will be displayed with bold text
+    res = comm.get_admin_agronom()
+    if(res):
+        return get_user_from_session(session).render_item_view({**{'item_name': " ".join(['Покупець', res[0]["name"], res[0]["surname"]])}, **res[0]})
+    # return get_user_from_session(session).render_item_view(
+    #     {'item_name': 'Покупець Vlad Zadorozhnyi', 'Name': 'Vlad', 'Surname': 'Zadorozhnyi',
+    #      'Location': 'Ternopil, Ukraine', 'Debt': '100 000 $'})
+    else:
+        return None
+        # TODO: handle inexistent id
 
 
 @app.route('/hemp/<hemp_id>')
 def hemp(hemp_id: int):
     # Done: Request to DB here
-    res = comm.get_admin_items(id = hemp_id)
+    res = comm.get_admin_items(id=hemp_id)
     # return get_user_from_session(session).render_hemp(
     #     {'item_name': 'Cool hemo', 'Days growtime': '125', 'Frost Resistance': 'Good'})  # any items here
     if(res):
-        return get_user_from_session(session).render_item_view(res[0])  # any items here
+        # any items here
+        return get_user_from_session(session).render_item_view(res[0])
     else:
         return None
         # TODO: handle inexistent id
@@ -259,7 +276,8 @@ def product(product_id: int):
     # Done: Request to DB here
     res = comm.get_admin_items(id=product_id)
     if(res):
-        return get_user_from_session(session).render_item_view(res[0])  # any items here
+        # any items here
+        return get_user_from_session(session).render_item_view(res[0])
     else:
         return None
         # TODO: handle inexistent id
@@ -269,18 +287,33 @@ def product(product_id: int):
 
 @app.route('/degustation/<degustation_id>')
 def degustation(degustation_id: int):
-    # TODO: Request to DB here
-    return get_user_from_session(session).render_item_view(
-        {'item_name': 'Maybe name of degustation', 'Agronom name': 'Vlad', 'Product name': 'Cool product',
-         'Buyers': ['Denys', 'Ostap', 'Anya']})  # any items here
+    # Done: Request to DB here
+    res = comm.get_admin_degustation(id=degustation_id)
+    # for line in res:
+    #     line["Buyers"] = [peer["name"] for peer in comm.get_admin_degustation_peers(id=degustation_id)]
+    # return get_user_from_session(session).render_item_view(res)
+    if(res):
+        degustation = res[-1]
+        return get_user_from_session(session).render_item_view(
+            {'item_name': 'Maybe name of degustation',
+             'Agronom name': degustation["seller_name"],
+             'Product name': degustation["product_name"],
+             'Buyers': [peer["name"] for peer in comm.get_admin_degustation_peers(id=degustation_id)]}
+        )
+        # {'item_name': 'Maybe name of degustation', 'Agronom name': 'Vlad', 'Product name': 'Cool product',
+        #  'Buyers': ['Denys', 'Ostap', 'Anya']})  # any items here
 
 
 @app.route('/trip/<trip_id>')
 def trip(trip_id: int):
-    # TODO: Request to DB here
-    return get_user_from_session(session).render_trip(
-        {'item_name': 'Ternopil', 'Date': '2020-01-01', 'Purpose': 'Degustation of Vlad`s hemp',
-         'Agronoms': ['Denys', 'Ostap', 'Anya']})  # any items here
+    # Done: Request to DB here
+    res = comm.get_admin_trip(id=trip_id)
+    if(res):
+        get_user_from_session(session).render_trip(res[0])
+
+    # return get_user_from_session(session).render_trip(
+    #     {'item_name': 'Ternopil', 'Date': '2020-01-01', 'Purpose': 'Degustation of Vlad`s hemp',
+    #      'Agronoms': ['Denys', 'Ostap', 'Anya']})  # any items here
 
 
 @app.route('/make_trip', methods=['GET'])
@@ -311,26 +344,26 @@ def register_crop():
         date = data['date']
         amount = data['amount']
         sort_id = data['sortId']
-        # TODO: Request to DB here
-        if True:
+        # Done: Request to DB here
+        res = comm.add_agronom_crop(user.id, sort_id, amount, date, False)
+        if (res == 0):
             return user.render('result_messages/success.j2', -1, message='Урожай успішно зареєстровано')
     return user.render('result_messages/fail.j2', -1, message="Помилка. Урожай не зареєстровано")
 
 
-
-
-
 @app.route('/make_degustation', methods=['POST'])
 def make_new_degustation():
-    if get_user_from_session(session).role == UserRole.AGRONOMIST.value:
+    user = get_user_from_session(session)
+    if user.role == UserRole.AGRONOMIST.value:
         data = request.get_json()
         date = data['date']
         amount = data['amount']
         product_id = data['productId']
         buyer_ids = data['buyerIds']
         print(data)
-        # TODO: Request to DB here
-        if True:  # If request was successful
+        # Done: Request to DB here
+        res = comm.add_agronom_degustation(user.id, 0, date, True, product_id, amount, buyer_ids)
+        if (res==0):  # If request was successful
             return make_response('', 200)
 
     return make_response('', 400)
@@ -345,7 +378,12 @@ def create_new_trip():
         location = data['location']
         purpose = data['purpose']
         agronom_ids = data['agronomIds']
-        # TODO: request to DB to create trip
+        # Done: request to DB to create trip
+        comm.add_admin_trip(location, departion, arrival, purpose)
+        # TODO: better way to get vacation_id?
+        vacation_id = comm.get_admin_trip(
+            None, location, departion, arrival, purpose)[-1]["id"]
+        comm.add_admin_trip_agronoms(vacation_id, agronom_ids)
         if True:
             return make_response('', 200)
     return make_response('', 400)
@@ -358,13 +396,13 @@ def return_deal(deal_id: int):
     res = comm.get_admin_deal(id=deal_id, buyer=user.id)
     if res:
         deal = res[0]
-        can_be_returned =  (deal["successfull"])
+        can_be_returned = (deal["successfull"])
         # TODO: make DB request to return deal
         if can_be_returned:
             return user._render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
     return user._render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
-                                                                    "вже не відмінена та чи не пройшло 14 "
-                                                                    "днів з моменту укладання")
+                        "вже не відмінена та чи не пройшло 14 "
+                        "днів з моменту укладання")
 
 
 @app.route('/get_goods', methods=['POST'])
@@ -375,8 +413,8 @@ def get_goods():
         min_age = data['minAge']
         min_price = data['minPrice']
         max_price = data['maxPrice']
-        # Done: make request to DB here 
-        return(jsonify(comm.get_user_items(min_price = min_price, max_price = max_price, min_age = min_age)))
+        # Done: make request to DB here
+        return(jsonify(comm.get_user_items(min_price=min_price, max_price=max_price, min_age=min_age)))
         # return jsonify(({"name": 'Best hemp', 'price': '128', 'pack': '15', 'min_age': 18, 'id': 1},
         #                 {"name": 'Best hemp 2', 'price': '100', 'pack': '5', 'min_age': 16, 'id': 2},
         #                 {"name": 'Cool hemp', 'price': '10145', 'pack': '1', 'min_age': 0, 'id': 3}))
@@ -384,9 +422,11 @@ def get_goods():
         min_distinct_buyers = data['minDistinctBuyers']
         min_date = data['minDate']
         max_date = data['maxDate']
+        return(jsonify(comm.get_user_items(min_price=min_price, max_price=max_price, min_age=min_age)))
         return jsonify(({'id': 4, 'name': 'Best hemp', 'return_percent': '15', 'pack': 1, 'price': 16, 'min_age': 18},))
     elif user.role == UserRole.AGRONOMIST.value:
-        # TODO: request to DB here. Need only names and ids
+        # Done: request to DB here. Need only names and ids
+        return(jsonify([{'id': line["id"], "name":line["name"]} for line in comm.get_user_items(min_price=min_price, max_price=max_price, min_age=min_age)]))
         return jsonify(({'id': 0, 'name': 'Best product'}, {'id': 5, 'name': 'Product 2'}))
 
 
@@ -418,7 +458,6 @@ def get_agronoms():
         min_degustations = data['minDegustations']
         max_degustations = data['maxDegustations']
         # TODO: request to DB, using fields above here
-        # res = comm.
         return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "buys": 10,
                          "degustations": 1},))
     elif user.role == UserRole.AGRONOMIST.value:
@@ -445,7 +484,7 @@ def get_feed_backs():
         min_date = data['minDate']
         max_date = data['maxDate']
         # Done: make request to DB here, using above fields
-        return(jsonify(comm.get_user_feedbacks(user_id, date_from=min_date, date_to = max_date)))
+        return(jsonify(comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date)))
         # return jsonify(({"id": 0, "agronom_name": "Ostap",
         #                  "message": "Good Good Good. I loved this hemp. The agronom is super cool",
         #                  "product_name": "Cool hemp"},
@@ -463,16 +502,28 @@ def get_degustations():
         min_date = data['minDate']
         max_date = data['maxDate']
         agronom_name = data['agronomName']
-        # TODO: make request to BD using fields above
-        return jsonify(({"id": 0, "product_name": "Cool hemp", "with": ['Denys', 'Ostap', 'Vlad', 'Anna']},))
+        # Done: make request to BD using fields above
+        res = comm.get_user_degustations(
+            user_id=user_id, date_from=min_date, date_to=max_date)
+        for line in res:
+            peers = comm.get_admin_degustation_peers(line["id"])
+            line["with"] = [peer["name"] for peer in peers]
+        return jsonify(res)
+        # return jsonify(({"id": 0, "product_name": "Cool hemp", "with": ['Denys', 'Ostap', 'Vlad', 'Anna']},))
     elif user.role == UserRole.AGRONOMIST.value:
         min_date = data['minDate']
         max_date = data['maxDate']
         product_name = data['productName']
         min_buyers = data['minBuyers']
-        # TODO: Request to DB here
-        return jsonify(({'id': 1, 'product_name': 'Cool hemp', 'testers': ['Ostap', 'Vlad', 'Denys'],
-                         'date': '2020-06-06', 'amount': '1'},))
+        # Done: Request to DB here
+        res = comm.get_agronom_degustations(
+            agronom_id=user_id, date_from=min_date, date_to=max_date, product_name=product_name, min_buyers=min_buyers)
+        for line in res:
+            peers = comm.get_admin_degustation_peers(line["id"])
+            line["testers"] = [peer["name"] for peer in peers]
+        return jsonify(res)
+        # return jsonify(({'id': 1, 'product_name': 'Cool hemp', 'testers': ['Ostap', 'Vlad', 'Denys'],
+        #                  'date': '2020-06-06', 'amount': '1'},))
 
 
 @app.route('/get_buyers', methods=['POST'])
@@ -495,16 +546,20 @@ def get_buyers():
 
 
 @app.route('/get_trips', methods=['POST'])
-def get_tris():
+def get_trips():
     user = get_user_from_session(session)
     if user.role == UserRole.AGRONOMIST.value:
         data = request.get_json()
         user_id = user.id
         min_date = data['minDate']
         max_date = data['maxDate']
-        # TODO: Request to DB here
-        return jsonify(({'id': 0, 'with': ['Ostap', 'Denys', 'Vlad', 'Anya'], 'departion': '2020-05-06',
-                         'arrival': '2020-05-07', 'location': 'Lviv'},))
+        # Done: Request to DB here
+        trips = comm.get_agronom_trips(agronom_id=user_id, date_from=min_date, date_to=max_date)
+        for trip in trips:
+            trip["with"] = [peer["name"] for peer in comm.get_admin_trip_peers(trip["id"], user_id)]
+        return jsonify(trips)
+        # return jsonify(({'id': 0, 'with': ['Ostap', 'Denys', 'Vlad', 'Anya'], 'departion': '2020-05-06',
+        #                  'arrival': '2020-05-07', 'location': 'Lviv'},))
 
 
 @app.route('/get_sorts', methods=['POST'])
