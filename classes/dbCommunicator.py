@@ -348,6 +348,22 @@ class dbCommunicator:
             return line[0]
         return None
 
+    def get_sorts_by_harvesting(self, min_harvesting, date_from, date_to):
+        sql_req = f"SELECT current_sort, p.name, cast (a.harvest_taken as decimal) / count(current_sort) as harvest_per_vacations FROM vacation"+\
+            f" INNER JOIN vacations v ON vacation.id = v.vacation"+\
+            f" INNER JOIN field f on vacation.destination = f.id"+\
+            f" INNER JOIN product p on p.id = current_sort" +\
+            f" INNER JOIN (SELECT sort, count(sort) as harvest_taken FROM store_and_spend GROUP BY sort) as a ON current_sort = a.sort"+\
+            f" WHERE true"+\
+            (f" and arrival > '{date_from}'" if not(date_from is None) else "")+\
+            (f"and arrival < '{date_to}''"if not(date_from is None) else "")+\
+            "GROUP BY p.name, current_sort, a.harvest_taken HAVING true"+\
+                (f" and count(current_sort) >= {min_harvesting}"if not(min_harvesting is None) else "")+\
+                "ORDER BY harvest_per_vacations;"
+        self.cursor.execute(sql_req)
+        return [{"id": line[0], "name":line[1], "average_trips":line[2]} for line in self.cursor.fetchall()]
+        
+
     def __del__(self):
         self.cursor.close()
         self.connection.close()

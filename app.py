@@ -583,11 +583,15 @@ def get_sorts():
         min_date = data['minDate']
         max_date = data['maxDate']
         min_harvesting = data['minHarvesting']
-        # TODO: Request to DB here
-        return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'},))
+        # Done: Request to DB here
+        res = comm.get_sorts_by_harvesting(min_harvesting, min_date, max_date)
+        return(jsonify(res))
+        # return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'},))
     if user.role == UserRole.AGRONOMIST.value:
-        # TODO request to DB here (need only names and ids)
-        return jsonify(({'id': 0, 'name': 'Cool sort'}, {'id': 5, 'name': 'Aother sort'}))
+        # Done request to DB here (need only names and ids)
+        res = comm.get_sorts_by_harvesting(min_harvesting, min_date, max_date)
+        return(jsonify(res))
+        # return jsonify(({'id': 0, 'name': 'Cool sort'}, {'id': 5, 'name': 'Aother sort'}))
 
 
 @app.errorhandler(404)
