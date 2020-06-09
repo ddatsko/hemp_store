@@ -2,6 +2,11 @@ import psycopg2
 import datetime
 
 
+def js_date_to_sql(date: str):
+    year, month, day = date.split('-')
+    return f'{day}/{month}/{year}'
+
+
 class dbCommunicator:
     def __init__(self, db_name: str, user="postgres", password="postgres", host="localhost", port=5432):
         self.connection = psycopg2.connect(
@@ -77,9 +82,73 @@ class dbCommunicator:
                 "SET successful=false\n"+\
                 f"WHERE id={deal_id};"
 
-# #
-#     def get_user_agronoms(self, user_id=None, min_buys=None, max_buys=None, min_degustations=None, max_degustations=None):
-#         sql_req = "SELECT p.id, p.name, p.surname from person inner_join "
+
+    def get_user_agronoms(self, user_id, min_deals, max_deals, min_degustations, max_degustations):
+        print(min_deals)
+        sql_select_agronoms = f"""
+            SELECT agronom.id,
+                   COALESCE(buys.buys, 0),
+                   COALESCE(degustations.degustations, 0),
+                   CONCAT(person.name, ' ', person.surname),
+                   person.location,
+                   agronom.reputation
+            FROM agronom
+                     LEFT JOIN
+                 (SELECT agronom.id, count(agronom.id), 0 AS buys
+                  FROM agronom 
+                           INNER JOIN deals on agronom.id = deals.seller AND deals.buyer = {user_id}
+                  GROUP BY agronom.id) as buys on agronom.id = buys.id
+                     LEFT JOIN
+                 (SELECT agronom.id, count(agronom.id) AS degustations
+                  FROM agronom
+                           INNER JOIN testing_table on agronom.id = testing_table.seller AND testing_table.tester = {user_id}
+                  GROUP BY agronom.id) as degustations on agronom.id = degustations.id
+                     INNER JOIN person on person.id = agronom.id  WHERE COALESCE(buys.buys, 0) >= {min_deals} AND COALESCE(buys.buys, 0) <= {max_deals} AND 
+                    COALESCE(degustations.degustations, 0) >= {min_degustations} AND COALESCE(degustations.degustations, 0) <= {max_degustations};"""
+        self.cursor.execute(sql_select_agronoms)
+        return [{'id': line[0], 'full_name': line[3], 'buys': line[1], 'degustations': line[2],
+                 'rating': line[5], 'location': line[4]} for line in self.cursor.fetchall()]
+
+
+    def get_agronom_agronoms(self, agronom_id, min_date, max_date):
+        min_date = js_date_to_sql(min_date)
+        max_date = js_date_to_sql(max_date)
+        sql_req = f"""
+            select distinct vacations.member, person.name, person.surname, person.location, agronom.reputation from
+                vacations
+            inner join
+                (select distinct with_agronom.id as vacation from
+                    (select distinct vacation as id from vacations where member = {agronom_id})with_agronom
+                        inner join
+                    (select distinct id from vacation where (departion >= '{min_date}' and arrival <= '{max_date}'))within_date
+                    on with_agronom.id = within_date.id
+                )chosen
+            on vacations.vacation = chosen.vacation INNER JOIN agronom on vacations.member = agronom.id INNER JOIN person on vacations.member = person.id;
+            """
+        self.cursor.execute(sql_req)
+        return [{'id': line[0], 'full_name': f'{line[1]} {line[2]}',
+                 'location': line[3], 'rating': line[4]} for line in self.cursor.fetchall()]
+
+    # -------------------------------------------------------------------------------Admin functions
+    def get_admin_agronoms(self, min_sorts, min_date, max_date):
+        print(min_sorts)
+
+        sql_req = f"""SELECT person.name, person.surname, person.location, foo.id, foo.count, foo.reputation
+                        FROM (SELECT agronom.id, count(distinct store_and_spend.sort), agronom.reputation
+                              FROM agronom
+                                       INNER JOIN store_and_spend
+                                                  on agronom.id = store_and_spend.owner
+                              WHERE store_and_spend.operation_day <= '{js_date_to_sql(max_date)}'
+                                AND store_and_spend.operation_day >= '{js_date_to_sql(min_date)}'
+                                AND NOT store_and_spend.take
+                              GROUP BY agronom.id
+                              HAVING count(distinct store_and_spend.sort) >= {min_sorts}) as foo
+                                 INNER JOIN person on person.id = foo.id;"""
+        self.cursor.execute(sql_req)
+
+        return [{'id': line[3], 'full_name': f'{line[0]} {line[1]}',
+                 'location': line[2], 'rating': line[5], 'sorts': line[4]} for line in self.cursor.fetchall()]
+
 
 # -------------------------------------------------------------------------------Agronom functions
 

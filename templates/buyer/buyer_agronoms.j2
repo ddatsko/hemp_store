@@ -19,10 +19,10 @@
     <script>
         window.onload = (event) => getItems();
         async function getItems() {
-            let minBuys = document.getElementById('min-buys');
-            let maxBuys = document.getElementById('max-buys');
-            let minDegustations = document.getElementById('min-degustations');
-            let maxDegustations = document.getElementById('max-degustations');
+            let minBuys = document.getElementById('min-buys').value;
+            let maxBuys = document.getElementById('max-buys').value;
+            let minDegustations = document.getElementById('min-degustations').value;
+            let maxDegustations = document.getElementById('max-degustations').value;
 
             const url = "/get_agronoms";
             fetch(url,

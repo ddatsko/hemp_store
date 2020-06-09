@@ -472,22 +472,18 @@ def get_agronoms():
         max_buys = data['maxBuys']
         min_degustations = data['minDegustations']
         max_degustations = data['maxDegustations']
-        # TODO: request to DB, using fields above here
-        return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "buys": 10,
-                         "degustations": 1},))
+        return jsonify(comm.get_user_agronoms(user_id, min_buys, max_buys, min_degustations, max_degustations))
     elif user.role == UserRole.AGRONOMIST.value:
-        min_trips = data['minTrips']
-        max_trips = data['maxTrips']
         min_date = data['minDate']
         max_date = data['maxDate']
-        # TODO: request to DB here
+        comm.get_agronom_agronoms(user.id, min_date, max_date)
+
         return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "trips": 5},))
     elif user.role == UserRole.ADMIN.value:
         min_sorts = data['minSorts']
         min_date = data['minDate']
         max_date = data['maxDate']
-        # TODO REQUEST TO DB here
-        return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "sorts": 5},))
+        return jsonify(comm.get_admin_agronoms(min_sorts, min_date, max_date))
 
 
 @app.route('/get_feed_backs', methods=['POST'])
