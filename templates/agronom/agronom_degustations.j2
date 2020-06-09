@@ -65,7 +65,7 @@
 
                     degustation.testers = degustation.testers.map((name) => "<li>" + name + "</li>");
                     itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                       <h3 class="card-name">${degustation.product_name}, ${degustation.amount} кг.</h3>
                                       <span class="date">${degustation.date}</span>
                                       <ul class="together">

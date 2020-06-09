@@ -43,7 +43,7 @@
 
 
                     item.innerHTML = `
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                       <div class="card-item-right">
                                           <a href="/leave_feed_back/product/${deal.product_id}">
                                               <div class="feed-back-button">Залишити відгук</div>

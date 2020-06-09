@@ -7,9 +7,11 @@ spec:
   selector:
     app: hemp
   ports:
-    - protocol: TCP
+    - name: main
+      protocol: TCP
       port: 80
       targetPort: 1200
-    - protocol: TCP
-        port: 6006
-        targetPort: 6006
+    - name: db
+      protocol: TCP
+      port: 6006
+      targetPort: 6006

@@ -45,7 +45,7 @@
                     item.classList.add('card-item');
 
                     item.innerHTML = `<a href="/hemp/${sort.id}">
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                         <h3 class="card-name">${sort.name}</h3>
                                            <span class="field-description">Середня кількість поїздок за вказаний період агрономами, що збирали урожай цього сорту
                                            щонайменше вибрану кількість разів: </span><span class="field-value"> ${sort.average_trips}</span>

@@ -49,7 +49,7 @@
                     itemLink.setAttribute('href', `/buyer/${buyer.id}`);
 
                     itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                       <h3 class="card-name">${buyer.full_name}</h3>
                                       <span class="city">${buyer.location}</span><br>
                                           <span class="agronom-spare-info">

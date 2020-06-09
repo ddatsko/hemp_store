@@ -47,7 +47,7 @@
                     item.classList.add('card-item');
 
                     item.innerHTML = `<a href="/product/${product.id}">
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                         <h3 class="card-name">${product.name}</h3>
                                         <span>Відсоток повернень за період: ${product.return_percent}</span><br>
                                                <span class="pack">Продається по ${product.pack} шт. </span><br>
