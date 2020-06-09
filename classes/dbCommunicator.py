@@ -1,2 +1,0 @@
-class DBCommunicator:
-    pass
