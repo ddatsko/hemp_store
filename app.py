@@ -303,6 +303,19 @@ def gather_crop():
 # ############## API part #############################################
 #######################################################################
 
+@app.route('/buy_product/<product_id>')
+def buy_product(product_id: int):
+    user = get_user_from_session(session)
+    if user.role == UserRole.BUYER.value:
+        user_id = user.id
+        # TODO: Request to DB here
+        if True:
+            return user.render('result_messages/success.j2', -1, message="Покупка пройшла успішно. Ви можете переглянути замовлення в відповідному розділі")
+        else:
+            return user.render('result_messages/fail.j2', -1, message="Упс... Сталася помилкаю Покупка не выдбулася")
+    return make_response('', 404)
+
+
 @app.route('/gather_crop', methods=['POST'])
 def register_crop():
     user = get_user_from_session(session)
