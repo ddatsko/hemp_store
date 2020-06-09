@@ -1,0 +1,13 @@
+name: Build and Push Docker image
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Login
+      run: docker login -u ddatsko -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build
+      run: docker build -t ddatsko/hemp:latest .
+    - name: Push    
+      run: docker push ddatsko/hemp:latest

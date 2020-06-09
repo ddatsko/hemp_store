@@ -11,7 +11,7 @@
 
 {% block right_to_nav %}
     <div class="item-info">
-        <img class="item-photo" alt="Item photo" src="../../static/img_replacer.jpg">
+        <img class="item-photo" alt="Item photo" src="{{ url_for('static', filename='img_replacer.jpg') }}">
         <h3 class="item-name">{{ info['item_name'] }}</h3>
         <ul class="info">
             {% for key in info %}

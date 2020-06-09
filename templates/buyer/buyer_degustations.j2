@@ -8,14 +8,14 @@
 
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
-        <h3 class="form-title">Filters</h3>
-        <label class="filter">Дата: <input class="date-input" type="date" id="min-date" placeholder="min"> - <input
-                class="date-input" type="date" placeholder="max" id="max-date"></label>
+        <h3 class="form-title">Фільтри</h3>
+        <label class="filter">Дата: <input class="date-input" type="date" id="min-date" placeholder="від"> - <input
+                class="date-input" type="date" placeholder="до" id="max-date"></label>
         <label class="filter">
-            Ім'я агронома: <input type="text" class="text-input" type="text" id="agronom-name" placeholder="Name">
+            Ім'я агронома: <input class="text-input" type="text" id="agronom-name" placeholder="Name">
         </label>
 
-        <button type="button" onclick="getItems()">Apply filters</button>
+        <button type="button" onclick="getItems()">Застосувати</button>
     </form>
 
     <h3 id="search-result">
@@ -60,7 +60,7 @@
 
                     degustation.with = degustation.with.map((name) => "<li>" + name + "</li>");
                     itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                       <h3 class="card-name">${degustation.product_name}</h3>
                                       <ul class="together">
                                         ${degustation.with.reduce((first, second) => first + second)}

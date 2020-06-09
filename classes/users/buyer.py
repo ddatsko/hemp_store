@@ -4,7 +4,7 @@ from flask import render_template
 
 
 class Buyer(User):
-    top_nav_elements = ({'link': '/logout', 'text': 'Log Out'},)
+    top_nav_elements = ({'link': '/logout', 'text': 'Вийти'},)
     left_nav_elements = (
         {'link': '/products', 'text': 'Купити коноплю'},
         {'link': '/orders', 'text': 'Мої замовлення'},

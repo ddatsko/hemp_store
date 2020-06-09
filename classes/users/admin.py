@@ -5,7 +5,7 @@ from flask import render_template
 
 class Admin(User):
     top_nav_elements = ({'link': '/make_trip', 'text': 'Нове відрядження'},
-                        {'link': '/logout', 'text': 'Log Out'})
+                        {'link': '/logout', 'text': 'Вийти'})
     left_nav_elements = (
         {'link': '/buyers', 'text': 'Покупці'},
         {'link': '/agronoms', 'text': 'Агрономи'},

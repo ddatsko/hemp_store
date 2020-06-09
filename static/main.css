@@ -191,6 +191,7 @@ li.card-item {
     box-shadow: 0 0 10px #999;
     padding: 20px;
     box-sizing: border-box;
+    margin-bottom: 50px
 }
 
 h3.card-name {
@@ -308,4 +309,22 @@ h1.fail {
     color: #991122;
     text-align: center;
     font-size: 30px;
+}
+
+#buy-button {
+    color: black;
+    background-color: white;
+    display: block;
+    border: 1px solid #44aa44;
+    padding: 5px;
+    border-radius: 4px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    margin-top: -10px;
+    width: 100%;
+}
+
+#buy-button:hover {
+    background-color: #EEEEEE;
 }

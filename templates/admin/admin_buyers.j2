@@ -8,11 +8,11 @@
 
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
-        <h3 class="form-title">Filters</h3>
-        <label class="filter">Мінімальна кількість покупок<input class="number-input" type="number" id="min-buys" placeholder="min"></label>
+        <h3 class="form-title">Фільтри</h3>
+        <label class="filter">Мінімальна кількість покупок<input class="number-input" type="number" id="min-buys" placeholder="від"></label>
         <label class="filter">В період <input class="date-input" type="date" id="min-date" placeholder="від"> - <input
                class="date-input" type="date" placeholder="до" id="max-date"></label>
-        <button type="button" onclick="getItems()">Apply filters</button>
+        <button type="button" onclick="getItems()">Застосувати</button>
     </form>
 
     <script>
@@ -46,7 +46,7 @@
                     itemLink.setAttribute('href', `/buyer/${buyer.id}`);
 
                     itemLink.innerHTML = `
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                       <h3 class="card-name">${buyer.full_name}</h3>
                                       <span class="city">${buyer.location}</span><br>
                                           <span class="agronom-spare-info">

@@ -8,12 +8,12 @@
 
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
-        <h3 class="form-title">Filters</h3>
+        <h3 class="form-title">Фільтри</h3>
         <label class="filter">Брати до уваги агрономів, які збирали сорт щонайменше <input class="number-input" type="number" id="min-harvesting" placeholder="min"> разів</label>
 
         <label class="filter">в період <input class="date-input" type="date" id="min-date" placeholder="від"> - <input class="date-input" type="date" id="max-date" placeholder="до">
         </label>
-        <button type="button" onclick="getItems()">Apply filters</button>
+        <button type="button" onclick="getItems()">Застосувати</button>
     </form>
 
     <script>
@@ -45,7 +45,7 @@
                     item.classList.add('card-item');
 
                     item.innerHTML = `<a href="/hemp/${sort.id}">
-                                      <img class="preview-img" src="../../static/img_replacer.jpg" alt="product photo">
+                                      <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                         <h3 class="card-name">${sort.name}</h3>
                                            <span class="field-description">Середня кількість поїздок за вказаний період агрономами, що збирали урожай цього сорту
                                            щонайменше вибрану кількість разів: </span><span class="field-value"> ${sort.average_trips}</span>

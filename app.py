@@ -6,8 +6,12 @@ from flask import Flask, session, redirect, jsonify, request, render_template, m
 from classes.dbCommunicator import dbCommunicator
 
 # app = Flask(__name__)
+<<<<<<< HEAD
 app = Flask(
     __name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
+=======
+app = Flask(__name__)
+>>>>>>> origin/master
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
 # comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
@@ -336,6 +340,19 @@ def gather_crop():
 # ############## API part #############################################
 #######################################################################
 
+@app.route('/buy_product/<product_id>')
+def buy_product(product_id: int):
+    user = get_user_from_session(session)
+    if user.role == UserRole.BUYER.value:
+        user_id = user.id
+        # TODO: Request to DB here
+        if True:
+            return user.render('result_messages/success.j2', -1, message="Покупка пройшла успішно. Ви можете переглянути замовлення в відповідному розділі")
+        else:
+            return user.render('result_messages/fail.j2', -1, message="Упс... Сталася помилкаю Покупка не выдбулася")
+    return make_response('', 404)
+
+
 @app.route('/gather_crop', methods=['POST'])
 def register_crop():
     user = get_user_from_session(session)
@@ -584,4 +601,4 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=1200)
+    app.run(host='0.0.0.0', debug=True, port=1200)
