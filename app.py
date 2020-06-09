@@ -6,12 +6,7 @@ from flask import Flask, session, redirect, jsonify, request, render_template, m
 from classes.dbCommunicator import dbCommunicator
 
 # app = Flask(__name__)
-<<<<<<< HEAD
-app = Flask(
-    __name__, static_url_path='/home/vlad/Desktop/2_year/Database/project_final/hemp_store/static')
-=======
 app = Flask(__name__)
->>>>>>> origin/master
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
 # comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
@@ -345,7 +340,8 @@ def buy_product(product_id: int):
     user = get_user_from_session(session)
     if user.role == UserRole.BUYER.value:
         user_id = user.id
-        # TODO: Request to DB here
+        # Done: Request to DB here
+        res = comm.add_user_order(user_id=user_id, product_id=product_id)
         if True:
             return user.render('result_messages/success.j2', -1, message="Покупка пройшла успішно. Ви можете переглянути замовлення в відповідному розділі")
         else:

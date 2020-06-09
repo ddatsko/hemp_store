@@ -58,6 +58,20 @@ class dbCommunicator:
         self.cursor.commit()
         return 0
 
+    def add_user_order(self, user_id, product_id, date=None):
+        product = self.get_item(product_id)
+        if(not product):
+            return -1
+        packing = self.get_admin_packing(product[0]["pack"])
+        if(not packing):
+            return -1
+        sql_req = "INSERT INTO deals (seller, buyer, successful, item, amount_of_product) VALUES"+\
+            f"{packing['manufacturer']}, {user_id}, true, {product_id}, {packing['capacity_gr']}"+\
+            ";"
+        self.cursor.execute(sql_req)
+        self.cursor.commit()
+        return 0
+
 # #
 #     def get_user_agronoms(self, user_id=None, min_buys=None, max_buys=None, min_degustations=None, max_degustations=None):
 #         sql_req = "SELECT p.id, p.name, p.surname from person inner_join "
@@ -139,6 +153,13 @@ class dbCommunicator:
                   ";"
         self.cursor.execute(sql_req)
         return [{"name": line[0], "price":line[1], "pack":line[2], "min_age":line[3], "id":line[4]} for line in self.cursor.fetchall()]
+
+    def get_admin_packing(self, id):
+        sql_req = f"SELECT id, capacity_gr, price, manufacturer FROM packing WHERE True" + \
+                  (f" and id = {id}" if not(id is None) else "") +\
+                  ";"
+        self.cursor.execute(sql_req)
+        return [{"id": line[0], "capacity_gr":line[1], "price":line[2], "manufacturer":line[3]} for line in self.cursor.fetchall()]
 
     def get_admin_agronom(self, id=None):
         sql_req = f"SELECT person.id, mail, password, name, surname, phone, bank_account, agronom.location, agronom.debt, agronom.reputation from person INNER JOIN agronom on (agronom.id = person.id) WHERE True" +\
