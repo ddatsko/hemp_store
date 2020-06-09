@@ -8,6 +8,6 @@ jobs:
     - name: Login
       run: docker login -u ddatsko -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Build
-      run: cd server && docker build -t ddatsko/hemp:latest .
+      run: docker build -t ddatsko/hemp:latest .
     - name: Push    
-      run: cd server && docker push ddatsko/hemp:latest
+      run: docker push ddatsko/hemp:latest
