@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <title>Hemp store</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     {#    <meta name="viewport" content="width=1800, initial-scale=1.05, maximum-scale=1.1, minimum-scale=1">#}
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='/hemp.ico') }}"/>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='hemp.ico') }}"/>
     {% block head %}
     {% endblock %}
 </head>
@@ -12,7 +12,7 @@
 <nav class="top-nav">
     <div class="container">
         <a class="title-link" href="/">
-            <img class="logo-img" alt="logo image" src="{{ url_for('static', filename='/hemp.png') }}">
+            <img class="logo-img" alt="logo image" src="{{ url_for('static', filename='hemp.png') }}">
             <span class="title">Hemp Store</span>
         </a>
 
