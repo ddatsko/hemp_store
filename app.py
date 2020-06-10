@@ -35,7 +35,7 @@ def process_input():
     user_id = check_registered(mail, pas)
     print(user_id)
     if user_id is not None:
-        dosie = find_role(mail)
+        dosie = find_role(mail)[0]
         info = comm.get_user_info(user_id)
         print(dosie)
         if dosie == 'agronom':
