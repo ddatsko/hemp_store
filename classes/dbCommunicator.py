@@ -12,6 +12,8 @@ class dbCommunicator:
         self.connection = psycopg2.connect(
             dbname=db_name, user=user, password=password, host=host, port=port)
         self.cursor = self.connection.cursor()
+
+
         return
 
     def get_user_items(self, min_price=None, max_price=None, min_age=None) -> tuple:
@@ -193,7 +195,7 @@ class dbCommunicator:
         self.cursor.execute(sql_req)
         self.cursor.commit()
         degustation_id = self.cursor.fetchone()[0]
-        add_admin_degustation_testers(degustation_id, testers)
+        self.add_admin_degustation_testers(degustation_id, testers)
         return 0
 
     
@@ -343,7 +345,7 @@ class dbCommunicator:
         self.cursor.execute(sql_req)
         self.cursor.commit()
         trip_id = self.cursor.fetchone()[0]
-        add_admin_trip_agronoms(trip_id, agronoms)
+        self.add_admin_trip_agronoms(trip_id, agronoms)
         return 0
 
     def add_admin_trip_agronoms(self, vacation_id, agronoms):
@@ -362,36 +364,36 @@ class dbCommunicator:
         self.cursor.commit()
         return 0
     
-    def add_admin_person(self, mail, password, name, surname='', phone='', bank_account='', **kwargs):
-        sql_req = "INSERT into person (name, surname, phone, bank_account, mail, password) VALUES" +\
-                  f"('{name}',,'{surname}','{phone}','{bank_account}','{mail}', '{password})" +\
+    def add_admin_person(self, name, surname, phone, bank_account, mail, password, location):
+        sql_req = "INSERT into person (name, surname, phone, bank_account, mail, password, location) VALUES" +\
+                  f"('{name}','{surname}','{phone}','{bank_account}','{mail}', '{password}', '{location}')" +\
             ";"
         self.cursor.execute(sql_req)
-        self.cursor.commit()
+        self.connection.commit()
         return 0
 
-    def add_admin_seller(self, id, productivity_per_month=0, location=""):
-        sql_req = "INSERT into seller(id, productivity_per_month, location) VALUES" +\
-            f"({id},{productivity_per_month},'{location}')" +\
+    def add_admin_seller(self, id, productivity_per_month=0):
+        sql_req = "INSERT into packing_seller(id, productivity_per_month) VALUES" +\
+            f"({id},{productivity_per_month})" +\
             ";"
         self.cursor.execute(sql_req)
-        self.cursor.commit()
+        self.connection.commit()
         return 0
 
-    def add_admin_agronom(self, id, location="", debt=0, reputation=0):
-        sql_req = "INSERT into seller(id, location, debt, reputation) VALUES" +\
-            f"({id},{location},{debt}, {reputation})" +\
+    def add_admin_agronom(self, id, debt=0, reputation=0):
+        sql_req = "INSERT into agronom(id, debt, reputation) VALUES" +\
+            f"({id},{debt}, {reputation})" +\
             ";"
         self.cursor.execute(sql_req)
-        self.cursor.commit()
+        self.connection.commit()
         return 0
 
-    def add_admin_buyer(self, id, money=0, location=""):
-        sql_req = "INSERT into seller(id, money, location) VALUES" +\
-            f"({id},{money},'{location}')" +\
+    def add_admin_buyer(self, id, money=0):
+        sql_req = "INSERT into buyer(id, money) VALUES" +\
+            f"({id},{money})" +\
             ";"
         self.cursor.execute(sql_req)
-        self.cursor.commit()
+        self.connection.commit()
         return 0
 
     def add_admin_hemp(self, sort_name, days_growtime, crop_capacity, frost_resistance):
@@ -412,6 +414,16 @@ class dbCommunicator:
         res = [{"name": line[0], "price":line[1], "pack":line[2],
                 "min_age":line[3], "id":line[4]} for line in self.cursor.fetchall()]
         return res[0] if res else None
+
+    def is_role(self, mail, i):
+        roles = ['agronom', 'buyer', 'packing_seller', 'admin']
+        id = self.get_person_id(mail)
+        sql_req = f"SELECT id from {roles[i]} where (id = '{id}') " + ";"
+        self.cursor.execute(sql_req)
+        for line in self.cursor.fetchall():
+            return line[0]
+        return None
+
 
     def get_person_id(self, mail, password=None):
         sql_req = f"SELECT id from person where True" +\
