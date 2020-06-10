@@ -362,10 +362,10 @@ def register_crop():
         data = request.form
         date = data['date']
         amount = float(data['amount'])
-        sort_id = data['sortId']
+        sort_id = int(data['sortId'])
         # Done: Request to DB here
         res = comm.add_agronom_crop(user.id, sort_id, amount, date, False)
-        if (res == 0):
+        if res:
             return user.render('result_messages/success.j2', -1, message='Урожай успішно зареєстровано')
     return user.render('result_messages/fail.j2', -1, message="Помилка. Урожай не зареєстровано")
 
@@ -573,15 +573,11 @@ def get_sorts():
         min_date = data['minDate']
         max_date = data['maxDate']
         min_harvesting = data['minHarvesting']
-        # Done: Request to DB here
         res = comm.get_sorts_by_harvesting(min_harvesting, min_date, max_date)
-        return (jsonify(res))
-        # return jsonify(({'id': 0, 'average_trips': 1.4, 'name': 'Cool sort'},))
+        return jsonify(res)
     if user.role == UserRole.AGRONOMIST.value:
-        # Done request to DB here (need only names and ids)
-        res = comm.get_sorts_by_harvesting(min_harvesting, min_date, max_date)
-        return (jsonify(res))
-        # return jsonify(({'id': 0, 'name': 'Cool sort'}, {'id': 5, 'name': 'Aother sort'}))
+        res = comm.get_sorts()
+        return jsonify(res)
 
 
 @app.errorhandler(404)

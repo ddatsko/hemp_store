@@ -336,13 +336,18 @@ class dbCommunicator:
         except Exception as e:
             print(e)
 
-    def add_agronom_crop(self, owner, sort, amount, operation_day, take):
-        sql_req = "INSERT INTO feed_back (owner, sort, amount, operation_day, take) VALUES" + \
-                  f"({owner}, '{sort}', {amount}, '{operation_day}', {take})" + \
+    def add_agronom_crop(self, owner, sort, amount, operation_day, take) -> bool:
+        sql_req = "INSERT INTO store_and_spend (owner, sort, amount, operation_day, take) VALUES" + \
+                  f"({owner}, '{sort}', {amount}, '{js_date_to_sql(operation_day)}', {take})" + \
                   ";"
-        self.cursor.execute(sql_req)
-        self.cursor.commit()
-        return 0
+        try:
+            self.cursor.execute(sql_req)
+            self.connection.commit()
+            return True
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+            return False
 
     def add_agronom_degustation(self, agronom_id, tester, made, successful, product, amount, testers):
         sql_req = "INSERT INTO testing_table(seller, tester, made, successful, product, amount) VALUES" + \
@@ -697,6 +702,15 @@ class dbCommunicator:
     def __del__(self):
         self.cursor.close()
         self.connection.close()
+
+    def get_sorts(self):
+        sql_req = """SELECT sort_id, sort_name FROM hemp;"""
+        try:
+            self.cursor.execute(sql_req)
+            return [{'id': line[0], 'name': line[1]} for line in self.cursor.fetchall()]
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
 
 
 if __name__ == "__main__":
