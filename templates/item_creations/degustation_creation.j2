@@ -45,7 +45,7 @@
                         'date': date,
                         'amount': amount,
                         'productId': productId,
-                        'buyerIds': buyerIds
+                        'buyerIds': selected_ids
                     }),
                     credentials: 'same-origin',
                     headers: new Headers({
@@ -79,6 +79,7 @@
                         'Content-Type': 'application/json'
                     })
                 }).then(response => response.json()).then(data => {
+                    console.log("HERE");
                     let productList = document.getElementById('product');
                     for (let product of data) {
                         let item = document.createElement('option');
@@ -88,15 +89,10 @@
                     }
             });
 
-            fetch("/get_buyers",
+            fetch("/get_all_buyers",
                 {
                     method: "POST",
-                 body: JSON.stringify({
-                        'minBuys': 0,
-                        'maxBuys': 100000000,
-                        'minDate': '0001-01-01',
-                        'maxDate': '100000-01-01'
-                    }),
+                 body: JSON.stringify({}),
                     credentials: 'same-origin',
                     headers: new Headers({
                         'Content-Type': 'application/json'
@@ -104,10 +100,10 @@
                 }).then(response => response.json()).then(data => {
                 let list = document.getElementById('buyers');
                 for (let buyer of data) {
-                    buyers.push({'id': buyer.id, 'full_name': buyer.full_name});
+                    buyers.push({'id': buyer.id, 'full_name': buyer.name});
                     let option = document.createElement('option');
                     option.setAttribute('value', buyer.id);
-                    option.innerHTML = `${buyer.id} (${buyer.full_name})`;
+                    option.innerHTML = `${buyer.id} (${buyer.name})`;
                     list.appendChild(option);
                 }
             })

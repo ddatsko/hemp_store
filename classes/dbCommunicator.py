@@ -159,6 +159,25 @@ class dbCommunicator:
             self.connection.rollback()
             return False
 
+
+    def get_goods(self):
+        sql_req = """SELECT id, name FROM product"""
+        try:
+            self.cursor.execute(sql_req)
+            return [{'id': line[0], 'name': line[1]} for line in self.cursor.fetchall()]
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+
+    def get_all_buyers(self):
+        sql_req = """SELECT person.id, person.name, person.surname FROM person INNER JOIN buyer ON buyer.id = person.id;"""
+        try:
+            self.cursor.execute(sql_req)
+            return [{'id': line[0], 'name': f'{line[1]} {line[2]}'} for line in self.cursor.fetchall()]
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+
     def add_user_order(self, user_id, product_id, date=None):
         try:
             product = self.get_item(product_id)
@@ -349,21 +368,26 @@ class dbCommunicator:
             self.connection.rollback()
             return False
 
-    def add_agronom_degustation(self, agronom_id, tester, made, successful, product, amount, testers):
-        sql_req = "INSERT INTO testing_table(seller, tester, made, successful, product, amount) VALUES" + \
-                  f"({agronom_id}, {tester}, '{made}', '{successful}',{product}, {amount})" + \
+    def add_agronom_degustation(self, agronom_id, made, product_id, amount, testers) -> bool:
+        sql_req = "INSERT INTO testing_table(seller, made, successful, product, amount) VALUES " + \
+                  f"({agronom_id}, '{js_date_to_sql(made)}', True, '{product_id}', {amount})" + \
                   "RETURNING id;"
         try:
             self.cursor.execute(sql_req)
+            degustation_id = self.cursor.fetchall()
+            degustation_id = degustation_id[0][0]
             self.connection.commit()
+            print(degustation_id)
 
-            degustation_id = self.cursor.fetchone()[0]
-            self.add_admin_degustation_testers(degustation_id, testers)
-            return 0
+            for tester in testers:
+                query = f"""INSERT INTO degustations (deal_id, tester_id) VALUES ({degustation_id}, {tester})"""
+                self.cursor.execute(query)
+                self.connection.commit()
+            return True
         except Exception as e:
             print(e)
             self.connection.rollback()
-            return []
+            return False
 
     # def add_agronom_to_vacation(self, agronom_id, vacation_id):
     #     sql_req = "INSERT INTO vaations(member, vacation)"
