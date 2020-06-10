@@ -42,8 +42,8 @@ def process_input():
             session['user'] = Agronom(user_id, info['full_name'], mail).__dict__()
         elif dosie == 'buyer':
             session['user'] = Buyer(user_id,  info['full_name'], mail).__dict__()
-        # elif dosie[1] == 'packing_seller':
-        #     session['user'] = (0, dosie[2], mail).__dict__()
+        elif dosie == 'packing_seller':
+            return render_template('packing_seller/packer.j2')
         elif dosie == 'admin':
             session['user'] = Admin(user_id,  info['full_name'], mail).__dict__()
         # else:
@@ -381,9 +381,7 @@ def make_new_degustation():
         buyer_ids = data['buyerIds']
         # Done: Request to DB here
 
-        res = comm.add_agronom_degustation( comm.get_person_id(user.email) , 15, date, True, 1, amount, 3)
-
-        if (res == 0):  # If request was successful
+        if comm.add_agronom_degustation(user.id, date, product_id, amount, buyer_ids):  # If request was successful
             return make_response('', 200)
 
     return make_response('', 400)
@@ -446,9 +444,7 @@ def get_goods():
         return jsonify(({'id': 4, 'name': 'Best hemp', 'return_percent': '15', 'pack': 1, 'price': 16, 'min_age': 18},))
     elif user.role == UserRole.AGRONOMIST.value:
         # Done: request to DB here. Need only names and ids
-        return (jsonify([{'id': line["id"], "name": line["name"]} for line in
-                         comm.get_user_items(min_price=min_price, max_price=max_price, min_age=min_age)]))
-        return jsonify(({'id': 0, 'name': 'Best product'}, {'id': 5, 'name': 'Product 2'}))
+        return jsonify(comm.get_goods())
 
 
 @app.route('/get_orders', methods=['POST'])
@@ -517,10 +513,12 @@ def get_degustations():
 
       
     elif user.role == UserRole.AGRONOMIST.value:
+        print(data)
         min_date = data['minDate']
         max_date = data['maxDate']
         product_name = data['productName'] or ''
-        min_buyers = data['minBuyers']
+        min_buyers = int(data['minBuyers'])
+        print(product_name)
         # Done: Request to DB here
         res = comm.get_agronom_degustations(
             user_id, min_date, max_date, product_name, min_buyers)
@@ -529,6 +527,10 @@ def get_degustations():
         # return jsonify(({'id': 1, 'product_name': 'Cool hemp', 'testers': ['Ostap', 'Vlad', 'Denys'],
         #                  'date': '2020-06-06', 'amount': '1'},))
 
+
+@app.route('/get_all_buyers', methods=['POST'])
+def get_all_buyers():
+    return jsonify(comm.get_all_buyers())
 
 @app.route('/get_buyers', methods=['POST'])
 def get_buyers():
@@ -540,7 +542,7 @@ def get_buyers():
         min_buys = data['minBuys']
         max_buys = data['maxBuys']
 
-        return jsonify( comm.agronom_buyers(comm.get_person_id(user.email), min_date, max_date, min_buys, max_buys) )
+        return jsonify( comm.agronom_buyers(user.id, min_date, max_date, min_buys, max_buys) )
 
     if user.role == UserRole.ADMIN.value:
         min_date = data['minDate']
