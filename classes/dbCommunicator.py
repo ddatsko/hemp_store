@@ -117,10 +117,42 @@ class dbCommunicator:
             self.connection.rollback()
             return False
 
+
+    def agronom_buyers(self, id, start_date, fin_date, min_count = 0, max_count = 10000):
+
+        sql_req = f"""
+                    select distinct buyer, b.name, b.surname, p.location, count(buyer), count(foo.tester) as tests from deals inner join agronom on deals.seller = agronom.id
+                    inner join person p on agronom.id = p.id inner join person b on deals.buyer = b.id left outer join
+
+                    (select tester, count(tester) from testing_table inner join degustations d on testing_table.id = d.deal_id
+                    where seller = 11 and made >= '01/01/2000' and made <= '01/01/2025' group by tester) as foo on buyer = foo.tester
+
+                    group by buyer, made, b.name, b.surname, seller, p.location HAVING count(buyer) >= {min_count}
+                    and count(buyer) <= {max_count} and seller = {id} and made >= '{start_date}' and made <= '{fin_date}';
+                    """
+
+        try:
+            self.cursor.execute(sql_req)
+            self.connection.commit()
+
+            return [{'id': line[0], 'full_name': f'{line[1]} {line[2]}',
+                    'buys': line[4], 'degustations': line[5], 'location': line[3]} for line in self.cursor.fetchall()]
+
+            return True
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+            return False
+
+        # return [{'id': line[0], 'full_name': f'{line[1]} {line[2]}',
+        #          'location': line[3]} for line in self.cursor.fetchall()]
+
+
     def add_deal_feed_back(self, user_id: int, message: str, deal_id: int) -> bool:
         sql_req = f"""
                 INSERT INTO feed_back (about_order, author, message, made)
                 VALUES ({deal_id}, {user_id}, '{message}', current_date);
+
                 """
         try:
             self.cursor.execute(sql_req)
@@ -161,6 +193,7 @@ class dbCommunicator:
             return True
         except Exception as e:
             print(e)
+
             self.connection.rollback()
             return False
 
@@ -274,11 +307,18 @@ class dbCommunicator:
         sql_req = "INSERT INTO testing_table(seller, tester, made, successful, product, amount) VALUES" + \
                   f"({agronom_id}, {tester}, '{made}', '{successful}',{product}, {amount})" + \
                   "RETURNING id;"
-        self.cursor.execute(sql_req)
-        self.cursor.commit()
-        degustation_id = self.cursor.fetchone()[0]
-        self.add_admin_degustation_testers(degustation_id, testers)
-        return 0
+        try:
+            self.cursor.execute(sql_req)
+            self.connection.commit()
+
+            degustation_id = self.cursor.fetchone()[0]
+            self.add_admin_degustation_testers(degustation_id, testers)
+            return 0
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+            return []
+
 
     # def add_agronom_to_vacation(self, agronom_id, vacation_id):
     #     sql_req = "INSERT INTO vaations(member, vacation)"
@@ -366,6 +406,7 @@ class dbCommunicator:
         return [{"id": line[0], "sort_name": line[1], "days_growtime": line[2], "crop_capacity": line[3],
                  "frost_resistance": line[4]} for line in self.cursor.fetchall()]
 
+
     def get_admin_deal(self, deal_id):
         sql_req = f"SELECT id, seller, buyer, made, successful, item, amount_of_product FROM deals WHERE deals.id = {deal_id};"
 
@@ -415,6 +456,7 @@ class dbCommunicator:
                   (f" and vacations.vacation = {trip_id}" if not (trip_id is None) else "") + \
                   (f" and person.id != {agronom_id}" if not (agronom_id is None) else "") + \
                   ";"
+
         self.cursor.execute(sql_req)
         return [{"id": line[0], "name": line[1]} for line in self.cursor.fetchall()]
 
@@ -552,9 +594,23 @@ class dbCommunicator:
                   (f" and (password = '{password}')" if password else "") + \
                   ";"
         # print(mail, " ", password)
+        try:
+            self.cursor.execute(sql_req)
+            for line in self.cursor.fetchall():
+                return line[0]
+            return None
+
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+            return False
+
+    def get_person_name(self, mail):
+        sql_req = f"SELECT name, surname from person WHERE (mail = '{mail}') ;"
+
         self.cursor.execute(sql_req)
         for line in self.cursor.fetchall():
-            return line[0]
+            return line[0] + " " + line[1] + " "
         return None
 
     def get_sorts_by_harvesting(self, min_harvesting, date_from, date_to):

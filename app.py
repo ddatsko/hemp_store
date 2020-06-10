@@ -1,5 +1,5 @@
 from helper_functions import check_registered, register_new, get_user_from_session, find_role
-from classes.users import Buyer, UserRole, Agronom, Admin
+from classes.users import Buyer, UserRole, Agronom, Admin, NoUser
 from flask import Flask, session, redirect, jsonify, request, render_template, make_response
 
 from classes.dbCommunicator import dbCommunicator
@@ -8,7 +8,6 @@ from classes.dbCommunicator import dbCommunicator
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
-# comm = dbCommunicator(db_name = "db_weed", user="postgres", password = "postgres", host = "localhost")
 comm = dbCommunicator("db14", host="142.93.163.88",
                       port=6006, user="team14", password="pas1swo4rd")
 
@@ -35,15 +34,18 @@ def process_input():
     mail = request.form['mail']
 
     if check_registered(pas, mail):
-        print( find_role(mail) )
-        # JUST FOR TEST
-        if mail == 'admin@gmail.com':
-            session['user'] = Admin(0, 'Denys', 'admin@gmail.com').__dict__()
-        elif mail == 'agronom@gmail.com':
-            session['user'] = Agronom(
-                0, 'Denys', 'agronom@gmail.com').__dict__()
-        else:
-            session['user'] = Buyer(25, 'Name Surname', 'email').__dict__()
+        dosie = find_role(mail)
+
+        if dosie[1] == 'agronom':
+            session['user'] = Agronom(0, dosie[2], mail).__dict__()
+        elif dosie[1] == 'buyer':
+            session['user'] = Buyer(0, dosie[2], mail).__dict__()
+        # elif dosie[1] == 'packing_seller':
+        #     session['user'] = (0, dosie[2], mail).__dict__()
+        elif dosie[1] == 'admin':
+            session['user'] = Admin(0, dosie[2], mail).__dict__()
+        # else:
+        #     session['user'] = NoUser().__dict__()
         return redirect('/')
     else:
         return render_template("log_in/failed_log.html")
@@ -374,7 +376,9 @@ def make_new_degustation():
         product_id = data['productId']
         buyer_ids = data['buyerIds']
         # Done: Request to DB here
-        res = comm.add_agronom_degustation(user.id, 0, date, True, product_id, amount, buyer_ids)
+
+        res = comm.add_agronom_degustation( comm.get_person_id(user.email) , 15, date, True, 1, amount, 3)
+
         if (res == 0):  # If request was successful
             return make_response('', 200)
 
@@ -454,9 +458,8 @@ def get_orders():
         min_date = filters['minDate']
         max_date = filters['maxDate']
         # Done: Request to db here
-        res = comm.get_user_orders(user_id, min_date, max_date)
-        print(res)
-        return jsonify(res)
+        return jsonify(comm.get_user_orders(user_id, min_date, max_date))
+
 
 
 @app.route('/get_agronoms', methods=['POST'])
@@ -475,7 +478,7 @@ def get_agronoms():
         max_date = data['maxDate']
         comm.get_agronom_agronoms(user.id, min_date, max_date)
 
-        return jsonify(({"id": 0, "full_name": "Ostap Dyhdalovych", "location": "Lviv", "rating": "10", "trips": 5},))
+        # return jsonify(({"id": 0, "full_name": "Osta Dyhdalovych", "location": "Lviv", "rating": "10", "trips": 5},))
     elif user.role == UserRole.ADMIN.value:
         min_sorts = data['minSorts']
         min_date = data['minDate']
@@ -491,8 +494,9 @@ def get_feed_backs():
         data = request.get_json()
         min_date = data['minDate']
         max_date = data['maxDate']
-        print(comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date))
-        return jsonify(comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date))
+        res = comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date)
+        print(res)
+        return jsonify(res)
 
 
 @app.route('/get_degustations', methods=['POST'])
@@ -506,6 +510,8 @@ def get_degustations():
         agronom_name = data['agronomName']
         return jsonify(comm.get_user_degustations(
             user_id, min_date, max_date, agronom_name))
+
+      
     elif user.role == UserRole.AGRONOMIST.value:
         min_date = data['minDate']
         max_date = data['maxDate']
@@ -528,11 +534,12 @@ def get_buyers():
     data = request.get_json()
     if user.role == UserRole.AGRONOMIST.value:
         min_date = data['minDate']
-        max_fate = data['maxDate']
+        max_date = data['maxDate']
         min_buys = data['minBuys']
         max_buys = data['maxBuys']
-        # TODO: Make request to DB here
-        return jsonify(({'id': 0, 'full_name': 'Ostap', 'buys': 10, 'degustations': 1, 'location': 'Lviv'},))
+
+        return jsonify( comm.agronom_buyers(comm.get_person_id(user.email), min_date, max_date, min_buys, max_buys) )
+
     if user.role == UserRole.ADMIN.value:
         min_date = data['minDate']
         max_date = data['maxDate']
