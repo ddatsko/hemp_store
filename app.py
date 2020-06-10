@@ -134,12 +134,10 @@ def leave_feedback(target_id: int, target: str):
         user = get_user_from_session(session)
         print("HERE")
         if target == 'agronom':
-            # Done: request to DB to get agronom name by id
-            # TODO: Handle if there is no such person
             person = comm.get_admin_person(id=target_id)
-            if (person):
+            if person:
                 return user.render('feed_back_forms/feed_back_form.j2', -1, name=person[0]["name"])
-            return None
+            return make_response('', 400)
             # return user.render('feed_back_forms/feed_back_form.j2', -1, name='Agronom name')
         elif target == 'product':
             # Done: request to DB to get product name by id
@@ -147,7 +145,7 @@ def leave_feedback(target_id: int, target: str):
             product = comm.get_admin_items(id=target_id)
             if (product):
                 return user.render('feed_back_forms/feed_back_form.j2', -1, name=product[0]["name"])
-            return None
+            return make_response('', 400)
     return redirect('/')
 
 
@@ -277,17 +275,15 @@ def product(product_id: int):
 @app.route('/degustation/<degustation_id>')
 def degustation(degustation_id: int):
     # Done: Request to DB here
-    res = comm.get_admin_degustation(id=degustation_id)
-    # for line in res:
-    #     line["Buyers"] = [peer["name"] for peer in comm.get_admin_degustation_peers(id=degustation_id)]
-    # return get_user_from_session(session).render_item_view(res)
-    if (res):
+    res = comm.get_admin_degustation(degustation_id)
+    if res:
         degustation = res[-1]
+        print(degustation)
         return get_user_from_session(session).render_item_view(
-            {'item_name': 'Maybe name of degustation',
-             'Agronom name': degustation["seller_name"],
-             'Product name': degustation["product_name"],
-             'Buyers': [peer["name"] for peer in comm.get_admin_degustation_peers(id=degustation_id)]}
+            {
+                'Agronom name': degustation["seller_name"],
+                'Product name': degustation["product_name"],
+                'Buyers': comm.get_admin_degustation_peers(degustation_id)}
         )
         # {'item_name': 'Maybe name of degustation', 'Agronom name': 'Vlad', 'Product name': 'Cool product',
         #  'Buyers': ['Denys', 'Ostap', 'Anya']})  # any items here
@@ -321,23 +317,35 @@ def gather_crop():
     return get_user_from_session(session).render_gather_crop()
 
 
+@app.route('/confirm_buy/<product_id>', methods=['GET'])
+def confirm_buy(product_id):
+    user = get_user_from_session(session)
+    if user.role != UserRole.BUYER.value:
+        return make_response('', 404)
+    product = comm.get_item(product_id)
+    return user.render('item_creations/buy_product.j2', -1, product_name=product['name'])
+
+
 #######################################################################
 # ############## API part #############################################
 #######################################################################
 
-@app.route('/buy_product/<product_id>')
-def buy_product(product_id: int):
+
+@app.route('/confirm_buy/<product_id>', methods=['POST'])
+def confirm_buy_post(product_id):
     user = get_user_from_session(session)
-    if user.role == UserRole.BUYER.value:
-        user_id = user.id
-        # Done: Request to DB here
-        res = comm.add_user_order(user_id=user_id, product_id=product_id)
-        if res != -1:
-            return user.render('result_messages/success.j2', -1,
-                               message="Покупка пройшла успішно. Ви можете переглянути замовлення в відповідному розділі")
-        else:
-            return user.render('result_messages/fail.j2', -1, message="Упс... Сталася помилкаю Покупка не выдбулася")
-    return make_response('', 404)
+    if user.role != UserRole.BUYER.value:
+        return make_response('', 404)
+    agronom_id = request.form['agronom_id']
+    amount = float(request.form['amount'])
+    if amount <= 0:
+        return user.render('result_messages/fail.j2', -1, message="Не можна куаляти від'ємну кількість продукту...")
+
+    if comm.add_deal(user.id, product_id, agronom_id, amount):
+        return user.render('result_messages/success.j2', -1,
+                           message="Покупка пройшля успішно. Тепер ви можете переглянути її у своїх замовленнях")
+    return user.render('result_messages/fail.j2', -1,
+                       message="Упс... Щось пішло не так...")
 
 
 @app.route('/gather_crop', methods=['POST'])
@@ -346,7 +354,7 @@ def register_crop():
     if user.role == UserRole.AGRONOMIST.value:
         data = request.form
         date = data['date']
-        amount = data['amount']
+        amount = float(data['amount'])
         sort_id = data['sortId']
         # Done: Request to DB here
         res = comm.add_agronom_crop(user.id, sort_id, amount, date, False)
@@ -364,7 +372,6 @@ def make_new_degustation():
         amount = data['amount']
         product_id = data['productId']
         buyer_ids = data['buyerIds']
-        print(data)
         # Done: Request to DB here
         res = comm.add_agronom_degustation(user.id, 0, date, True, product_id, amount, buyer_ids)
         if (res == 0):  # If request was successful
@@ -397,13 +404,12 @@ def create_new_trip():
 def return_deal(deal_id: int):
     user = get_user_from_session(session)
     # Done: check if the user made this deal and if it can be returned (date and if not returned already)
-    res = comm.get_admin_deal(id=deal_id, buyer=user.id)
+    res = comm.get_admin_deal(deal_id)
     if res:
-        deal = res[0]
-        can_be_returned = (deal["successful"])
+        can_be_returned = (res["successful"])
         # Done: make DB request to return deal
         if can_be_returned:
-            if comm.change_user_cancel_deal(deal["id"]):
+            if comm.change_user_cancel_deal(deal_id):
                 return user.render('result_messages/success.j2', -1, message="Угоду успішно відмінено")
     return user.render('result_messages/fail.j2', -1, message="Угоду не вдалося відмінити. Перевірте, чи вона "
                                                               "вже не відмінена та чи не пройшло 14 "
@@ -447,7 +453,9 @@ def get_orders():
         min_date = filters['minDate']
         max_date = filters['maxDate']
         # Done: Request to db here
-        return jsonify(comm.get_user_orders(user_id, min_date, max_date))
+        res = comm.get_user_orders(user_id, min_date, max_date)
+        print(res)
+        return jsonify(res)
 
 
 @app.route('/get_agronoms', methods=['POST'])
@@ -482,8 +490,7 @@ def get_feed_backs():
         data = request.get_json()
         min_date = data['minDate']
         max_date = data['maxDate']
-        res = comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date)
-        print(res)
+        print(comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date))
         return jsonify(comm.get_user_feedbacks(user_id, date_from=min_date, date_to=max_date))
 
 

@@ -328,3 +328,7 @@ h1.fail {
 #buy-button:hover {
     background-color: #EEEEEE;
 }
+
+.confirmation-title {
+    margin: 50px;
+}
