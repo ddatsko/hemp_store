@@ -18,19 +18,26 @@ def get_user_from_session(session) -> User:
     else:  # If something went wrong
         return NoUser()
 
+def find_role(mail):
+    roles = ['agronom', 'buyer', 'packing_seller', 'admin']
+    for i in range(4):
+        if ( comm.is_role(mail, i) ):
+            return roles[i]
 
-def check_registered(mail, password):
-    id = comm.get_person_id(mail)
-    return (id is None)
 
-def register_new(user_role, name, surname, phone, b_a, mail, location, password, *args, **kwargs):
-    if not (comm.get_person_id(mail)):
-        comm.add_admin_person(name,surname, phone, b_a, mail, location, password, **kwargs)
-        id = comm.get_person_id(mail)
-        if(user_role == UserRole.SELLER.value):
-            comm.add_admin_seller(id, *args, **kwargs)
-        if(user_role == UserRole.AGRONOMIST.value):
-            comm.add_admin_agronom(id, *args, **kwargs)
-        if(user_role == UserRole.BUYER.value):
-            comm.add_admin_buyer(id, *args, **kwargs)
+def check_registered(password, mail):
+    id = comm.get_person_id(mail, password)
+    return (id is not None)
+
+def register_new( role, name, surname, phone, bank_account, mail, password, location, optional = None ):
+    if not (comm.get_person_id( mail )):
+        comm.add_admin_person( name, surname, phone, bank_account, mail, location, password )
+        id = comm.get_person_id( mail )
+        if( role == UserRole.SELLER):
+            comm.add_admin_seller(id, optional)
+        if( role == UserRole.AGRONOMIST):
+            comm.add_admin_agronom(id)
+        if( role == UserRole.BUYER):
+            comm.add_admin_buyer(id, optional)
+        return True
     return False

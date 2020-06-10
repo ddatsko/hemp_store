@@ -1,4 +1,4 @@
-from helper_functions import check_registered, register_new, get_user_from_session
+from helper_functions import check_registered, register_new, get_user_from_session, find_role
 from classes.users import Buyer, UserRole, Agronom, Admin
 from flask import Flask, session, redirect, jsonify, request, render_template, make_response
 
@@ -35,6 +35,7 @@ def process_input():
     mail = request.form['mail']
 
     if check_registered(pas, mail):
+        print( find_role(mail) )
         # JUST FOR TEST
         if mail == 'admin@gmail.com':
             session['user'] = Admin(0, 'Denys', 'admin@gmail.com').__dict__()
@@ -95,7 +96,7 @@ def process_b_reg_response():
     money = request.form['money']
     password = request.form['password']
 
-    if register_new(UserRole.BUYER, name, surname, phone, b_a, mail, location, password):
+    if register_new(UserRole.BUYER, name, surname, phone, b_a, mail, location, password, money):
         return render_template("register/successful_register.html")
     else:
         return render_template("register/failed_register.html")
@@ -122,7 +123,7 @@ def process_s_reg_response():
     productivity = request.form['productivity']
     password = request.form['password']
 
-    if register_new(UserRole.SELLER, name, surname, phone, b_a, mail, location, password):
+    if register_new(UserRole.SELLER, name, surname, phone, b_a, mail, location, password, productivity):
         return render_template("register/successful_register.html")
     else:
         return render_template("register/failed_register.html")
@@ -583,4 +584,4 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=1200)
+    app.run(host='0.0.0.0', debug=True, port=3200)
