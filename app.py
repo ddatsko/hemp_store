@@ -579,6 +579,7 @@ def get_sorts():
         max_date = data['maxDate']
         min_harvesting = data['minHarvesting']
         res = comm.get_sorts_by_harvesting(min_harvesting, min_date, max_date)
+        print(res)
         return jsonify(res)
     if user.role == UserRole.AGRONOMIST.value:
         res = comm.get_sorts()

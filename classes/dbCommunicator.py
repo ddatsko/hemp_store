@@ -707,7 +707,6 @@ class dbCommunicator:
         sql_req = "INSERT into packing_seller(id, productivity_per_month) VALUES" + \
                   f"({id},{productivity_per_month})" + \
                   ";"
-
         self.cursor.execute(sql_req)
         self.connection.commit()
         return 0
@@ -815,19 +814,24 @@ class dbCommunicator:
         return None
 
     def get_sorts_by_harvesting(self, min_harvesting, date_from, date_to):
-        sql_req = f"SELECT current_sort, p.name, cast (a.harvest_taken as decimal) / count(current_sort) as harvest_per_vacations FROM vacation" + \
+        sql_req = f"SELECT current_sort, sort_name, cast (a.harvest_taken as decimal) / count(current_sort) as harvest_per_vacations FROM vacation" + \
                   f" INNER JOIN vacations v ON vacation.id = v.vacation" + \
                   f" INNER JOIN field f on vacation.destination = f.id" + \
-                  f" INNER JOIN product p on p.id = current_sort" + \
+                  f" INNER JOIN hemp p on p.sort_id = current_sort" + \
                   f" INNER JOIN (SELECT sort, count(sort) as harvest_taken FROM store_and_spend GROUP BY sort) as a ON current_sort = a.sort" + \
                   f" WHERE true" + \
-                  (f" and arrival > '{date_from}'" if not (date_from is None) else "") + \
-                  (f"and arrival < '{date_to}''" if not (date_from is None) else "") + \
-                  "GROUP BY p.name, current_sort, a.harvest_taken HAVING true" + \
+                  (f" and arrival > '{js_date_to_sql(date_from)}'" if not (date_from is None) else "") + \
+                  (f" and arrival < '{js_date_to_sql(date_to)}'" if not (date_from is None) else "") + \
+                  " GROUP BY sort_name, current_sort, a.harvest_taken HAVING true" + \
                   (f" and count(current_sort) >= {min_harvesting}" if not (min_harvesting is None) else "") + \
                   "ORDER BY harvest_per_vacations;"
-        self.cursor.execute(sql_req)
-        return [{"id": line[0], "name": line[1], "average_trips": line[2]} for line in self.cursor.fetchall()]
+        try:
+            self.cursor.execute(sql_req)
+            return [{"id": line[0], "name": line[1], "average_trips": str(line[2])[:3]} for line in self.cursor.fetchall()]
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+            return False
 
     def __del__(self):
         self.cursor.close()
@@ -852,7 +856,7 @@ if __name__ == "__main__":
     # sq
     # sql_req = """select table_schema, table_name from information_schema.tables where (table_schema = 'public')"""
     # sql_req = """INSERT INTO admin(id) VALUES
-    #             (47);
+    #             ();
     # """
     comm.cursor.execute(sql_req)
     # comm.connection.commit()

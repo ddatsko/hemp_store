@@ -22,7 +22,7 @@ def find_role(mail):
     roles = ['agronom', 'buyer', 'packing_seller', 'admin']
     for i in range(4):
         if comm.is_role(mail, i):
-            return roles[i]
+            return roles[i::-1]
 
 
 def check_registered(mail, password):
