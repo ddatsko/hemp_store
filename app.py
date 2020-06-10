@@ -9,7 +9,7 @@ app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
 comm = dbCommunicator("db14", host="142.93.163.88",
                       port=6006, user="team14", password="pas1swo4rd")
-
+# comm = dbCommunicator(db_name="db_weed")
 
 @app.route('/', methods=["GET", "POST"])
 def render_welcome():
@@ -37,7 +37,7 @@ def process_input():
     if user_id is not None:
         dosie = find_role(mail)
         info = comm.get_user_info(user_id)
-
+        print(dosie)
         if dosie == 'agronom':
             session['user'] = Agronom(user_id, info['full_name'], mail).__dict__()
         elif dosie == 'buyer':
@@ -442,7 +442,7 @@ def get_goods():
         min_distinct_buyers = data['minDistinctBuyers']
         min_date = data['minDate']
         max_date = data['maxDate']
-        return (jsonify(comm.get_user_items(min_price=min_price, max_price=max_price, min_age=min_age)))
+        return (jsonify(comm.get_admin_items(min_distinct_buyers=min_distinct_buyers, min_date=min_date, max_date=max_date)))
         return jsonify(({'id': 4, 'name': 'Best hemp', 'return_percent': '15', 'pack': 1, 'price': 16, 'min_age': 18},))
     elif user.role == UserRole.AGRONOMIST.value:
         # Done: request to DB here. Need only names and ids
@@ -546,7 +546,10 @@ def get_buyers():
         min_date = data['minDate']
         max_date = data['maxDate']
         min_buys = data['minBuys']
+
         # TODO: Request to DB here
+        # return jsonify()
+        return jsonify(comm.get_admin_buyers(min_buys, min_date, max_date))
         return jsonify(({'id': 0, 'full_name': 'Ostap', 'buys': 10, 'location': 'Lviv'},))
 
 
@@ -588,3 +591,5 @@ def page_not_found(e):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=1200)
+    # app.run(host='localhost', debug=True, port=1200)
+

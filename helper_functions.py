@@ -2,7 +2,7 @@ from classes.users import User, Admin, NoUser, Buyer, Agronom, UserRole
 # from app import comm
 from classes.dbCommunicator import dbCommunicator
 comm = dbCommunicator("db14", host = "142.93.163.88",port = 6006, user = "team14", password = "pas1swo4rd")
-
+# comm = dbCommunicator("db_weed")
 
 
 def get_user_from_session(session) -> User:

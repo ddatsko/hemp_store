@@ -263,9 +263,6 @@ class dbCommunicator:
 
     # -------------------------------------------------------------------------------Agronom functions
 
-    def get_admin_items(self):
-        pass
-
     def get_agronom_degustations(self, agronom_id, date_from, date_to, product_name, min_buyers):
         print(product_name)
         sql_req = f"""
@@ -388,17 +385,44 @@ class dbCommunicator:
             {"id": line[0], "mail": line[1], "password": line[2], "name": line[3], "surname": line[4], "phone": line[5],
              "bank_account": line[6], "location": line[7]} for line in self.cursor.fetchall()]
 
-    def get_admin_items(self, id=None, name=None, pack=None, price=None, min_age=None) -> tuple:
-        sql_req = f"SELECT name, price, pack, min_age, id FROM product WHERE True" + \
-                  (f" and id = {id}" if not (id is None) else "") + \
-                  (f" and name = {name}" if not (name is None) else "") + \
-                  (f" and pack = {pack}" if not (pack is None) else "") + \
-                  (f" and price  = {price}" if not (price is None) else "") + \
-                  (f" and min_age = {min_age}" if not (min_age is None) else "") + \
-                  ";"
+# def get_admin_items(self, id=None, name=None, pack=None, price=None, min_age=None) -> tuple:
+    #     sql_req = f"SELECT name, price, pack, min_age, id FROM product WHERE True" + \
+    #               (f" and id = {id}" if not (id is None) else "") + \
+    #               (f" and name = {name}" if not (name is None) else "") + \
+    #               (f" and pack = {pack}" if not (pack is None) else "") + \
+    #               (f" and price  = {price}" if not (price is None) else "") + \
+    #               (f" and min_age = {min_age}" if not (min_age is None) else "") + \
+    #               ";"
+    #     self.cursor.execute(sql_req)
+    #     return [{"name": line[0], "price": line[1], "pack": line[2], "min_age": line[3], "id": line[4]} for line in
+#             self.cursor.fetchall()]
+
+    def get_admin_items(self, min_distinct_buyers, min_date, max_date):
+        sql_req = f"""select item,
+                        p.name,
+                        cast(count(*) filter ( where not successful ) as decimal) / count(*) as percent,
+                        p.pack,
+                        p.price,
+                        p.min_age
+                    FROM deals
+                        inner join product p on p.id = item
+                    WHERE made > '{js_date_to_sql(min_date)}'
+                        and made < '{js_date_to_sql(max_date)}'
+                    group by p.name,
+                        deals.item,
+                        p.pack,
+                        p.price,
+                        p.min_age
+                    having count(distinct buyer) >= {min_distinct_buyers}
+                    order by cast(
+                            count(*) filter ( where not successful ) as decimal) / count(*) desc;
+                    """
         self.cursor.execute(sql_req)
-        return [{"name": line[0], "price": line[1], "pack": line[2], "min_age": line[3], "id": line[4]} for line in
+        res = [{"id": line[0], "name": line[1], "return_percent": str(int(line[2]*100))+"%", "pack": line[3], "price": line[4], "min_age":line[5]} for line in
                 self.cursor.fetchall()]
+        # print(res)
+        return res
+
 
     def get_admin_packing(self, id):
         sql_req = f"SELECT id, capacity_gr, price, manufacturer FROM packing WHERE True" + \
@@ -408,20 +432,43 @@ class dbCommunicator:
         return [{"id": line[0], "capacity_gr": line[1], "price": line[2], "manufacturer": line[3]} for line in
                 self.cursor.fetchall()]
 
-    def get_admin_agronom(self, id=None):
-        sql_req = f"SELECT person.id, mail, password, name, surname, phone, bank_account, person.location, agronom.debt, agronom.reputation from person INNER JOIN agronom on (agronom.id = person.id) WHERE True" + \
-                  (f" and (id = {id})" if id else "") + \
-                  ";"
-        try:
-            self.cursor.execute(sql_req)
-            return [
-                {"id": line[0], "mail": line[1], "name": line[3], "surname": line[4], "phone": line[5],
-                 "bank_account": line[6], "location": line[7], "debt": line[8], "reputation": line[9]} for line in
-                self.cursor.fetchall()]
-        except Exception as e:
-            print(e)
-            self.connection.rollback()
-            return []
+    # def get_admin_agronom(self, id=None):
+    #     sql_req = f"SELECT person.id, mail, password, name, surname, phone, bank_account, person.location, agronom.debt, agronom.reputation from person INNER JOIN agronom on (agronom.id = person.id) WHERE True" + \
+    #               (f" and (id = {id})" if id else "") + \
+    #               ";"
+    #     try:
+    #         self.cursor.execute(sql_req)
+    #         return [
+    #             {"id": line[0], "mail": line[1], "name": line[3], "surname": line[4], "phone": line[5],
+    #              "bank_account": line[6], "location": line[7], "debt": line[8], "reputation": line[9]} for line in
+    #             self.cursor.fetchall()]
+    #     except Exception as e:
+    #         print(e)
+    #         self.connection.rollback()
+    #         return []
+
+    # def get_admin_agronoms(self, min_sorts, min_date, max_date):
+    #     sql_req = f"""select buyer,
+    #                     p.name,
+    #                     p.surname,
+    #                     p.location,
+    #                     p.rating,
+    #                     count(),
+    #                     p.reputation
+    #                 from deals
+    #                     inner join person p on deals.buyer = p.id
+    #                 where made > '01/01/2000'
+    #                     and made < '01/01/2021'
+    #                 group by buyer,
+    #                     p.name,
+    #                     p.surname,
+    #                     p.location
+    #                 having count(distinct item) >= 2;"""
+    #     self.cursor.execute(sql_req)
+    #     return [{'id': line[3], 'full_name': f'{line[0]} {line[1]}',
+    #         'location': line[2], 'rating': line[5], 'sorts': line[4]} for line in self.cursor.fetchall()]
+
+
 
     def get_admin_buyer(self, id=None):
         sql_req = f"SELECT person.id, mail, password, name, surname, phone, bank_account, agronom.location, buyer.money from person INNER JOIN agronom on (buyer.id = buyer.id) WHERE True" + \
@@ -439,17 +486,42 @@ class dbCommunicator:
             {"id": line[0], "mail": line[1], "password": line[2], "name": line[3], "surname": line[4], "phone": line[5],
              "bank_account": line[6], "location": line[7], "money": line[7]} for line in self.cursor.fetchall()]
 
-    def get_admin_hemp(self, id=None, sort_name=None, days_growtime=None, crop_capacity=None, frost_resistance=None):
-        sql_req = "SELECT sort_id, sort_name, days_growtime, crop_capacity, frost_resistance FROM hemp WHERE TRUE" + \
-                  (f" and (sort_id = {id})" if not (id is None) else "") + \
-                  (f" and (sort_name = '{sort_name}'')" if not (sort_name is None) else "") + \
-                  (f" and (days_growtime = {days_growtime})" if not (days_growtime is None) else "") + \
-                  (f" and (crop_capacity = {crop_capacity})" if not (crop_capacity is None) else "") + \
-                  (f" and (frost_resistance = {frost_resistance})" if not (frost_resistance is None) else "") + \
-                  ";"
-        self.cursor.execute(sql_req)
-        return [{"id": line[0], "sort_name": line[1], "days_growtime": line[2], "crop_capacity": line[3],
-                 "frost_resistance": line[4]} for line in self.cursor.fetchall()]
+    # def get_admin_hemp(self, id=None, sort_name=None, days_growtime=None, crop_capacity=None, frost_resistance=None):
+    #     sql_req = "SELECT sort_id, sort_name, days_growtime, crop_capacity, frost_resistance FROM hemp WHERE TRUE" + \
+    #               (f" and (sort_id = {id})" if not (id is None) else "") + \
+    #               (f" and (sort_name = '{sort_name}'')" if not (sort_name is None) else "") + \
+    #               (f" and (days_growtime = {days_growtime})" if not (days_growtime is None) else "") + \
+    #               (f" and (crop_capacity = {crop_capacity})" if not (crop_capacity is None) else "") + \
+    #               (f" and (frost_resistance = {frost_resistance})" if not (frost_resistance is None) else "") + \
+    #               ";"
+    #     self.cursor.execute(sql_req)
+    #     return [{"id": line[0], "sort_name": line[1], "days_growtime": line[2], "crop_capacity": line[3],
+    #              "frost_resistance": line[4]} for line in self.cursor.fetchall()]
+
+    # def get_admin_hemp():
+    #     sql_req = f"""select current_sort,
+    #                     p.name,
+    #                     p.
+    #                     cast (a.harvest_taken as decimal) / count(current_sort) as harvest_per_vacations
+    #                 from vacation
+    #                     inner join vacations v on vacation.id = v.vacation
+    #                     inner join field f on vacation.destination = f.id
+    #                     inner join product p on p.id = current_sort
+    #                     inner join (
+    #                         select sort,
+    #                             count(sort) as harvest_taken
+    #                         from store_and_spend
+    #                         group by sort
+    #                     ) as a on current_sort = a.sort
+    #                 where arrival > '01/01/2000'
+    #                     and arrival < '01/01/2025'
+    #                 group by p.name,
+    #                     current_sort,
+    #                     a.harvest_taken
+    #                 having count(current_sort) >= 2
+    #                 order by harvest_per_vacations;"""
+    #     self.cursor.execute(sql_req)
+    #     return [{"id":line[0], "full_name":f'{line[1]} {line[2]}', "buys":line[3], "location":line[4]} for line in sqlf.cursor.fetchall()]
 
     def get_admin_deal(self, deal_id):
         sql_req = f"SELECT id, seller, buyer, made, successful, item, amount_of_product FROM deals WHERE deals.id = {deal_id};"
@@ -619,6 +691,25 @@ class dbCommunicator:
         self.connection.commit()
         return 0
 
+    def get_admin_buyers(self, min_buys, min_date, max_date):
+        sql_req = f"""select buyer,
+                        p.name,
+                        p.surname,
+                        count(distinct item),
+                        p.location
+                    from deals
+                        inner join person p on deals.buyer = p.id
+                    where made > '{js_date_to_sql(min_date)}'
+                        and made < '{js_date_to_sql(max_date)}'
+                    group by buyer,
+                        p.name,
+                        p.surname,
+                        p.location
+                    having count(distinct item) >= {min_buys};"""
+        self.cursor.execute(sql_req)
+        return [{"id":line[0], "full_name":f'{line[1]} {line[2]}', "buys":line[3], "location":line[4]} for line in self.cursor.fetchall()]
+
+
     def add_admin_hemp(self, sort_name, days_growtime, crop_capacity, frost_resistance):
         sql_req = "INSERT into hemp(sort_name, days_growtime, crop_capacity, frost_resistance) VALUES" + \
                   f"('{sort_name}',{days_growtime}, {crop_capacity}, {frost_resistance})" + \
@@ -718,11 +809,18 @@ if __name__ == "__main__":
     comm = dbCommunicator("db14", host="142.93.163.88",
                           port=6006, user="team14", password="pas1swo4rd")
 
-    sql_req = f"SELECT deal_id FROM degustations;"
-    # # sql_req = """select table_schema, table_name from information_schema.tables where (table_schema = 'public')"""
+    sql_req = f"SELECT * FROM admin;"
+    # sq
+    # sql_req = """select table_schema, table_name from information_schema.tables where (table_schema = 'public')"""
+    # sql_req = """INSERT INTO admin(id) VALUES
+    #             (47);
+    # """
     comm.cursor.execute(sql_req)
+    # comm.connection.commit()
     print("\n".join([str(line) for line in comm.cursor.fetchall()]))
-
+    # comm.add_admin_person("Eru", "Iluvatar", "123456789", "12345678", "admin@admin.com", "eru", "Valinor")
+    res = comm.get_admin_person()
+    print("\n".join(str(dict) for dict in res))
     # print(datetime.date(2019, 9, 9))
     # print("\n".join(str(dict) for dict in comm.get_user_items(min_age=18)))
     # print("\n".join(str(dict) for dict in comm.get_user_orders(user_id=22)))

@@ -16,6 +16,7 @@ class Admin(User):
         super().__init__(user_id, full_name, email, role)
 
     def render_default(self):
+        print("admin is here")
         return self.render_buyers()
 
     def render_buyers(self):
