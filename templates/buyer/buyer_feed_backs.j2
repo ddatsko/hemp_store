@@ -49,10 +49,8 @@
                 for (let feed_back of data) {
                     let item = document.createElement('li');
                     item.classList.add('card-item');
-                    let itemLink = document.createElement('a');
-                    itemLink.setAttribute('href', `/feed_back/${feed_back.id}`);
 
-                    itemLink.innerHTML = `
+                    item.innerHTML = `
                                       <img class="preview-img" src="{{ url_for('static', filename='img_replacer.jpg') }}" alt="product photo">
                                       <h3 class="card-name">${feed_back.agronom_name} <br>
                                             ${feed_back.product_name}
@@ -63,7 +61,6 @@
 
                                       `;
 
-                    item.appendChild(itemLink);
                     list.appendChild(item);
                 }
             });

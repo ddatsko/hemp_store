@@ -1,0 +1,50 @@
+{% extends 'main.j2' %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='/item_creation.css') }}">
+{% endblock %}
+
+{% block body %}
+    <h2 class="confirmation-title">Купити Продукт {{ product_name }}</h2>
+    <form class="new-item-form" method="post">
+            <label class="number-input-label">
+            Скільки кілограм: <input id="amount" name="amount" type="number" required>
+
+        <label class="select-label">
+            Виберіть, в якого агронома купити: <select id="agronom" name="agronom_id">
+        </select>
+        </label>
+        <button type="submit">Підтвердити покупку</button>
+
+    </form>
+
+    <script>
+        window.onload = () => {
+            const url = "/get_agronoms";
+            fetch(url,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        'minBuys': 0,
+                        'maxBuys': 10000000000,
+                        'minDegustations': 0,
+                        'maxDegustations': 10000000000,
+                    }),
+                    credentials: 'same-origin',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(response => response.json()).then(data => {
+                let list = document.getElementById('agronom');
+                for (let agronom of data) {
+                    let option = document.createElement('option');
+                    option.setAttribute('value', agronom.id);
+                    option.innerHTML = `${agronom.id} (${agronom.full_name})`;
+                    list.appendChild(option);
+                }
+            })
+        }
+    </script>
+
+{% endblock %}
+
