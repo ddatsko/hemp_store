@@ -386,6 +386,21 @@ class dbCommunicator:
             self.connection.rollback()
             return False
 
+    def get_admin_agronom(self, id=None):
+        sql_req = f"SELECT person.id, mail, password, name, surname, phone, bank_account, person.location, agronom.debt, agronom.reputation from person INNER JOIN agronom on (agronom.id = person.id) WHERE True" + \
+                  (f" and (id = {id})" if id else "") + \
+                  ";"
+        try:
+            self.cursor.execute(sql_req)
+            return [
+                {"id": line[0], "mail": line[1], "name": line[3], "surname": line[4], "phone": line[5],
+                 "bank_account": line[6], "location": line[7], "debt": line[8], "reputation": line[9]} for line in
+                self.cursor.fetchall()]
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
+            return []
+
     # def add_agronom_to_vacation(self, agronom_id, vacation_id):
     #     sql_req = "INSERT INTO vaations(member, vacation)"
 
