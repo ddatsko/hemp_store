@@ -42,8 +42,8 @@ def process_input():
             session['user'] = Agronom(user_id, info['full_name'], mail).__dict__()
         elif dosie == 'buyer':
             session['user'] = Buyer(user_id,  info['full_name'], mail).__dict__()
-        # elif dosie[1] == 'packing_seller':
-        #     session['user'] = (0, dosie[2], mail).__dict__()
+        elif dosie == 'packing_seller':
+            return render_template('packing_seller/packer.j2')
         elif dosie == 'admin':
             session['user'] = Admin(user_id,  info['full_name'], mail).__dict__()
         # else:
