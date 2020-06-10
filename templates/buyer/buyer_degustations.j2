@@ -30,7 +30,7 @@
 
             let minDate = document.getElementById('min-date').value || '0001-01-01';
             let maxDate = document.getElementById('max-date').value || '100000-01-01';
-            let agronomName = document.getElementById('agronom-name').valueOf();
+            let agronomName = document.getElementById('agronom-name').value;
 
             const url = "/get_degustations";
             fetch(url,
