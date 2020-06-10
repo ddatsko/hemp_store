@@ -4,7 +4,6 @@ from flask import Flask, session, redirect, jsonify, request, render_template, m
 
 from classes.dbCommunicator import dbCommunicator
 
-# app = Flask(__name__)
 app = Flask(__name__)
 app.secret_key = b'HeLl0ThisIsRand0m8ytesHemp_st0resoCOOOOll'
 
@@ -33,17 +32,20 @@ def process_input():
     pas = request.form['password']
     mail = request.form['mail']
 
-    if check_registered(pas, mail):
+    user_id = check_registered(mail, pas)
+    print(user_id)
+    if user_id is not None:
         dosie = find_role(mail)
+        info = comm.get_user_info(user_id)
 
-        if dosie[1] == 'agronom':
-            session['user'] = Agronom(0, dosie[2], mail).__dict__()
-        elif dosie[1] == 'buyer':
-            session['user'] = Buyer(0, dosie[2], mail).__dict__()
+        if dosie == 'agronom':
+            session['user'] = Agronom(user_id, info['full_name'], mail).__dict__()
+        elif dosie == 'buyer':
+            session['user'] = Buyer(user_id,  info['full_name'], mail).__dict__()
         # elif dosie[1] == 'packing_seller':
         #     session['user'] = (0, dosie[2], mail).__dict__()
-        elif dosie[1] == 'admin':
-            session['user'] = Admin(0, dosie[2], mail).__dict__()
+        elif dosie == 'admin':
+            session['user'] = Admin(user_id,  info['full_name'], mail).__dict__()
         # else:
         #     session['user'] = NoUser().__dict__()
         return redirect('/')
@@ -476,7 +478,7 @@ def get_agronoms():
     elif user.role == UserRole.AGRONOMIST.value:
         min_date = data['minDate']
         max_date = data['maxDate']
-        comm.get_agronom_agronoms(user.id, min_date, max_date)
+        return jsonify(comm.get_agronom_agronoms(user.id, min_date, max_date))
 
         # return jsonify(({"id": 0, "full_name": "Osta Dyhdalovych", "location": "Lviv", "rating": "10", "trips": 5},))
     elif user.role == UserRole.ADMIN.value:
@@ -515,14 +517,12 @@ def get_degustations():
     elif user.role == UserRole.AGRONOMIST.value:
         min_date = data['minDate']
         max_date = data['maxDate']
-        product_name = data['productName']
+        product_name = data['productName'] or ''
         min_buyers = data['minBuyers']
         # Done: Request to DB here
         res = comm.get_agronom_degustations(
-            agronom_id=user_id, date_from=min_date, date_to=max_date, product_name=product_name, min_buyers=min_buyers)
-        for line in res:
-            peers = comm.get_admin_degustation_peers(line["id"])
-            line["testers"] = [peer["name"] for peer in peers]
+            user_id, min_date, max_date, product_name, min_buyers)
+        print(res)
         return jsonify(res)
         # return jsonify(({'id': 1, 'product_name': 'Cool hemp', 'testers': ['Ostap', 'Vlad', 'Denys'],
         #                  'date': '2020-06-06', 'amount': '1'},))
@@ -556,7 +556,7 @@ def get_trips():
         user_id = user.id
         min_date = data['minDate']
         max_date = data['maxDate']
-        # Done: Request to DB here
+
         trips = comm.get_agronom_trips(agronom_id=user_id, date_from=min_date, date_to=max_date)
         for trip in trips:
             trip["with"] = [peer["name"] for peer in comm.get_admin_trip_peers(trip["id"], user_id)]

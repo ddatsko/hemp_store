@@ -33,7 +33,7 @@
 
             let minDate = document.getElementById('min-date').value || '0001-01-01';
             let maxDate = document.getElementById('max-date').value || '100000-01-01';
-            let productName = document.getElementById('product-name').valueOf();
+            let productName = document.getElementById('product-name').valueOf() || '';
             let minBuyers = document.getElementById('min-buyers').value || 0;
 
             const url = "/get_degustations";

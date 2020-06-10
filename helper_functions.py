@@ -21,13 +21,13 @@ def get_user_from_session(session) -> User:
 def find_role(mail):
     roles = ['agronom', 'buyer', 'packing_seller', 'admin']
     for i in range(4):
-        if ( comm.is_role(mail, i) ):
+        if comm.is_role(mail, i):
             return roles[i]
 
 
-def check_registered(password, mail):
+def check_registered(mail, password):
     id = comm.get_person_id(mail, password)
-    return (id is not None)
+    return id
 
 def register_new( role, name, surname, phone, bank_account, mail, password, location, optional = None ):
     if not (comm.get_person_id( mail )):

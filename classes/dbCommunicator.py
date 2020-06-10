@@ -13,7 +13,6 @@ class dbCommunicator:
             dbname=db_name, user=user, password=password, host=host, port=port)
         self.cursor = self.connection.cursor()
 
-
         return
 
     def get_user_items(self, min_price=None, max_price=None, min_age=None) -> tuple:
@@ -57,7 +56,8 @@ class dbCommunicator:
                       AND feed_back.made > '{js_date_to_sql(date_from)}' AND feed_back.author = {user_id};
             """
             self.cursor.execute(sql_req)
-            return [{'id': line[0], 'agronom_name': f'{line[2] or ""} {line[3] or ""}', 'message': line[1], 'product_name': line[4] or ''}
+            return [{'id': line[0], 'agronom_name': f'{line[2] or ""} {line[3] or ""}', 'message': line[1],
+                     'product_name': line[4] or ''}
                     for
                     line in self.cursor.fetchall()]
         except Exception as e:
@@ -100,8 +100,6 @@ class dbCommunicator:
             return res
         except Exception as e:
             print(e)
-        # return [{"id": line[0], "seller": line[1], "tester": line[2], "made": line[3], "product": line[3]} for line in
-        #         self.cursor.fetchall()]
 
     def add_agronom_feed_back(self, user_id: int, message: str, agronom_id: int) -> bool:
         sql_req = f"""
@@ -117,8 +115,7 @@ class dbCommunicator:
             self.connection.rollback()
             return False
 
-
-    def agronom_buyers(self, id, start_date, fin_date, min_count = 0, max_count = 10000):
+    def agronom_buyers(self, id, start_date, fin_date, min_count=0, max_count=10000):
 
         sql_req = f"""
                     select distinct buyer, b.name, b.surname, p.location, count(buyer), count(foo.tester) as tests from deals inner join agronom on deals.seller = agronom.id
@@ -136,7 +133,7 @@ class dbCommunicator:
             self.connection.commit()
 
             return [{'id': line[0], 'full_name': f'{line[1]} {line[2]}',
-                    'buys': line[4], 'degustations': line[5], 'location': line[3]} for line in self.cursor.fetchall()]
+                     'buys': line[4], 'degustations': line[5], 'location': line[3]} for line in self.cursor.fetchall()]
 
             return True
         except Exception as e:
@@ -146,7 +143,6 @@ class dbCommunicator:
 
         # return [{'id': line[0], 'full_name': f'{line[1]} {line[2]}',
         #          'location': line[3]} for line in self.cursor.fetchall()]
-
 
     def add_deal_feed_back(self, user_id: int, message: str, deal_id: int) -> bool:
         sql_req = f"""
@@ -270,19 +266,43 @@ class dbCommunicator:
     def get_admin_items(self):
         pass
 
-    def get_agronom_degustations(self, agronom_id, date_from=None, date_to=None, product_name=None, min_buyers=None):
-        sql_req = "SELECT id, seller, tester, made, product.name from testing_table" + \
-                  "INNER JOIN (SELECT deal_id, count(tester_id) as num_testers FROM degustations)counts ON testing_table.id = counts.deal_id" + \
-                  (f" INNER JOIN product ON product.id = testing_table.product WHERE True") + \
-                  (f" and seller = {agronom_id}" if not (agronom_id is None) else "") + \
-                  (f" and made >= '{date_from}'" if not (date_from is None) else "") + \
-                  (f" and made <= '{date_to}'" if not (date_to is None) else "") + \
-                  (f" and product.name = '{product_name}'" if not (product_name is None) else "") + \
-                  (f" and counts.num_testers >= '{min_buyers}'" if not (min_buyers is None) else "") + \
-                  ";"
-        self.cursor.execute(sql_req)
-        return [{"id": line[0], "seller": line[1], "tester": line[2], "made": line[3], "product_name": line[3]} for line
-                in self.cursor.fetchall()]
+    def get_agronom_degustations(self, agronom_id, date_from, date_to, product_name, min_buyers):
+        print(product_name)
+        sql_req = f"""
+                SELECT foo.id, foo.name, p2.name, foo.amount, foo.made
+                FROM (select testing_table.id, testing_table.tester, testing_table.seller, p.name, testing_table.amount, testing_table.made
+                      FROM testing_table
+                               INNER JOIN product p on testing_table.product = p.id
+                      WHERE testing_table.seller = {agronom_id}
+                        AND testing_table.made
+                          < '{js_date_to_sql(date_to)}'
+                        AND testing_table.made
+                          > '{js_date_to_sql(date_from)}') as foo
+                         LEFT JOIN degustations d on foo.id = d.deal_id
+                         INNER JOIN person p2 on d.tester_id = p2.id
+                         LEFT JOIN person seller ON foo.seller = seller.id
+                WHERE foo.name ilike '%{product_name}%'
+                ORDER BY id;
+        """
+        try:
+            self.cursor.execute(sql_req)
+            req_res = self.cursor.fetchall()
+            cur_id = -1
+            cur_obj = {}
+            res = []
+            for line in req_res:
+                if line[0] == cur_id:
+                    cur_obj['testers'].append(line[2])
+                else:
+                    if cur_obj and len(cur_obj['testers']) >= min_buyers:
+                        res.append(cur_obj)
+                    cur_obj = {'id': line[0], 'product_name': line[1], 'testers': [line[2]], 'amount': line[3], 'date': line[4]}
+                    cur_id = cur_obj['id']
+            if cur_obj and len(cur_obj['testers']) >= min_buyers:
+                res.append(cur_obj)
+            return res
+        except Exception as e:
+            print(e)
 
     def get_agronom_trips(self, agronom_id, date_from=None, date_to=None):
         sql_req = "SELECT id, destination, departion, arrival, from vacation" + \
@@ -318,7 +338,6 @@ class dbCommunicator:
             print(e)
             self.connection.rollback()
             return []
-
 
     # def add_agronom_to_vacation(self, agronom_id, vacation_id):
     #     sql_req = "INSERT INTO vaations(member, vacation)"
@@ -406,7 +425,6 @@ class dbCommunicator:
         return [{"id": line[0], "sort_name": line[1], "days_growtime": line[2], "crop_capacity": line[3],
                  "frost_resistance": line[4]} for line in self.cursor.fetchall()]
 
-
     def get_admin_deal(self, deal_id):
         sql_req = f"SELECT id, seller, buyer, made, successful, item, amount_of_product FROM deals WHERE deals.id = {deal_id};"
 
@@ -448,8 +466,6 @@ class dbCommunicator:
             print(e)
             self.connection.rollback()
             return False
-
-
 
     def get_admin_trip_peers(self, trip_id, agronom_id=None):
         sql_req = "SELECT person.id, person.name from person INNER JOIN vacations ON person.id = vacations.member WHERE True" + \
@@ -517,40 +533,38 @@ class dbCommunicator:
         self.cursor.execute(sql_req)
         self.cursor.commit()
         return 0
-    
+
     def add_admin_person(self, name, surname, phone, bank_account, mail, password, location):
-        sql_req = "INSERT into person (name, surname, phone, bank_account, mail, password, location) VALUES" +\
-                  f"('{name}','{surname}','{phone}','{bank_account}','{mail}', '{password}', '{location}')" +\
-            ";"
+        sql_req = "INSERT into person (name, surname, phone, bank_account, mail, password, location) VALUES" + \
+                  f"('{name}','{surname}','{phone}','{bank_account}','{mail}', '{password}', '{location}')" + \
+                  ";"
 
         self.cursor.execute(sql_req)
         self.connection.commit()
         return 0
 
     def add_admin_seller(self, id, productivity_per_month=0):
-        sql_req = "INSERT into packing_seller(id, productivity_per_month) VALUES" +\
-            f"({id},{productivity_per_month})" +\
-            ";"
+        sql_req = "INSERT into packing_seller(id, productivity_per_month) VALUES" + \
+                  f"({id},{productivity_per_month})" + \
+                  ";"
 
         self.cursor.execute(sql_req)
         self.connection.commit()
         return 0
-
 
     def add_admin_agronom(self, id, debt=0, reputation=0):
-        sql_req = "INSERT into agronom(id, debt, reputation) VALUES" +\
-            f"({id},{debt}, {reputation})" +\
-            ";"
+        sql_req = "INSERT into agronom(id, debt, reputation) VALUES" + \
+                  f"({id},{debt}, {reputation})" + \
+                  ";"
 
         self.cursor.execute(sql_req)
         self.connection.commit()
         return 0
 
-
     def add_admin_buyer(self, id, money=0):
-        sql_req = "INSERT into buyer(id, money) VALUES" +\
-            f"({id},{money})" +\
-            ";"
+        sql_req = "INSERT into buyer(id, money) VALUES" + \
+                  f"({id},{money})" + \
+                  ";"
 
         self.cursor.execute(sql_req)
         self.connection.commit()
@@ -587,13 +601,21 @@ class dbCommunicator:
             return line[0]
         return None
 
+    def get_user_info(self, user_id):
+        sql_req = f"""SELECT name, surname, mail FROM person WHERE id = {user_id}"""
+        try:
+            self.cursor.execute(sql_req)
+            res = self.cursor.fetchall()
+            return {'full_name': f'{res[0][0]} {res[0][1]}', 'mail': res[0][2]}
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
 
     def get_person_id(self, mail, password=None):
-        sql_req = f"SELECT id from person where True" + \
-                  f" and (mail = '{mail}') " + \
-                  (f" and (password = '{password}')" if password else "") + \
-                  ";"
-        # print(mail, " ", password)
+        sql_req = f"""
+            SELECT id FROM person 
+                WHERE mail = '{mail}' """ + \
+                  (f"AND password = '{password}'" if password is not None else '')
         try:
             self.cursor.execute(sql_req)
             for line in self.cursor.fetchall():
