@@ -513,10 +513,12 @@ def get_degustations():
 
       
     elif user.role == UserRole.AGRONOMIST.value:
+        print(data)
         min_date = data['minDate']
         max_date = data['maxDate']
         product_name = data['productName'] or ''
-        min_buyers = data['minBuyers']
+        min_buyers = int(data['minBuyers'])
+        print(product_name)
         # Done: Request to DB here
         res = comm.get_agronom_degustations(
             user_id, min_date, max_date, product_name, min_buyers)
