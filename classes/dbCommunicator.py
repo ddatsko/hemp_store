@@ -4,7 +4,7 @@ import datetime
 
 def js_date_to_sql(date: str):
     year, month, day = date.split('-')
-    return f'{day}/{month}/{year}'
+    return f'{month}/{day}/{year}'
 
 
 class dbCommunicator:
@@ -296,7 +296,8 @@ class dbCommunicator:
                 else:
                     if cur_obj and len(cur_obj['testers']) >= min_buyers:
                         res.append(cur_obj)
-                    cur_obj = {'id': line[0], 'product_name': line[1], 'testers': [line[2]], 'amount': line[3], 'date': line[4]}
+                    cur_obj = {'id': line[0], 'product_name': line[1], 'testers': [line[2]], 'amount': line[3],
+                               'date': line[4]}
                     cur_id = cur_obj['id']
             if cur_obj and len(cur_obj['testers']) >= min_buyers:
                 res.append(cur_obj)
@@ -304,16 +305,36 @@ class dbCommunicator:
         except Exception as e:
             print(e)
 
-    def get_agronom_trips(self, agronom_id, date_from=None, date_to=None):
-        sql_req = "SELECT id, destination, departion, arrival, from vacation" + \
-                  (f"INNER JOIN vacations ON vacations.vacation = vacation.id WHERE True") + \
-                  (f" and vacations.member={agronom_id}" if not (agronom_id is None) else "") + \
-                  (f" and departion >= '{date_from}'" if not (date_from is None) else "") + \
-                  (f" and arrival <= '{date_to}'" if not (date_to is None) else "") + \
-                  ";"
-        self.cursor.execute(sql_req)
-        return [{"id": line[0], "destination": line[1], "departion": line[2], "arrival": line[3]} for line in
-                self.cursor.fetchall()]
+    def get_agronom_trips(self, agronom_id, date_from, date_to):
+        sql_req = f"""
+            SELECT vacation.id, person.name, person.surname, vacation.departion, vacation.arrival, vacation.purpose, f.location
+            FROM person
+                     INNER JOIN vacations ON person.id = vacations.member INNER JOIN (SELECT vacation FROM vacations
+                                 WHERE member = {agronom_id}) AS agronom_vacations ON vacations.vacation=agronom_vacations.vacation
+                    INNER JOIN vacation on vacations.vacation = vacation.id
+                    INNER JOIN field f on vacation.destination = f.id WHERE vacation.departion < '{js_date_to_sql(date_to)}' AND vacation.arrival > '{js_date_to_sql(date_from)}' ORDER BY vacation.id;
+
+                """
+        try:
+            self.cursor.execute(sql_req)
+            req_res = self.cursor.fetchall()
+            cur_id = -1
+            cur_obj = {}
+            res = []
+            for line in req_res:
+                if line[0] == cur_id:
+                    cur_obj['with'].append(f'{line[1]} {line[2]}')
+                else:
+                    if cur_obj:
+                        res.append(cur_obj)
+                    cur_obj = {'id': line[0], 'departion': line[3], 'arrival': line[4], 'location': line[6],
+                               'with': [f'{line[1]} {line[2]}']}
+                    cur_id = cur_obj['id']
+            if cur_obj:
+                res.append(cur_obj)
+            return res
+        except Exception as e:
+            print(e)
 
     def add_agronom_crop(self, owner, sort, amount, operation_day, take):
         sql_req = "INSERT INTO feed_back (owner, sort, amount, operation_day, take) VALUES" + \
@@ -447,11 +468,34 @@ class dbCommunicator:
         self.cursor.execute(sql_req)
         vacations = [{"id": line[0], "destination": line[1], "departion": line[2],
                       "arrival": line[3], "purpose": line[4]} for line in self.cursor.fetchall()]
+
         for vacation in vacations:
             sql_req = f"SELECT id, name FROM vacations INNER JOIN people ON people.id = vacations.member WHERE vacations.vacation = {vacation['id']};"
             self.cursor.execute(sql_req)
             vacation["people"] = [line[1] for line in self.cursor.fetchall()]
         return vacations
+
+    def get_trip_info(self, trip_id: int):
+        sql_req = f"""
+            SELECT person.name, person.surname, vacation.departion, vacation.arrival, vacation.purpose, f.location
+            FROM person
+                     INNER JOIN vacations on person.id = vacations.member
+                     INNER JOIN
+                 vacation ON vacation.id = vacations.vacation
+                     INNER JOIN field f on vacation.destination = f.id
+            WHERE vacation.id = {trip_id};
+        """
+        try:
+            self.cursor.execute(sql_req)
+            sql_res = self.cursor.fetchall()
+            res = {'Agronoms': [], 'item_name': sql_res[0][5], 'Departion': sql_res[0][2], 'Arrival': sql_res[0][3],
+                   'Purpose': sql_res[0][4]}
+            res['Agronoms'] = [f'{line[0]} {line[1]}' for line in sql_res]
+            return res
+
+        except Exception as e:
+            print(e)
+            self.connection.rollback()
 
     def add_deal(self, user_id: int, product_id: int, agronom_id: int, amount: int) -> bool:
         try:

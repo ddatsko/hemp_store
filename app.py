@@ -297,13 +297,15 @@ def degustation(degustation_id: int):
 @app.route('/trip/<trip_id>')
 def trip(trip_id: int):
     # Done: Request to DB here
-    res = comm.get_admin_trip(id=trip_id)
-    if (res):
-        get_user_from_session(session).render_trip(res[0])
+    res = comm.get_trip_info(trip_id)
+    if res:
+        return get_user_from_session(session).render_item_view(res)
 
     # return get_user_from_session(session).render_trip(
     #     {'item_name': 'Ternopil', 'Date': '2020-01-01', 'Purpose': 'Degustation of Vlad`s hemp',
     #      'Agronoms': ['Denys', 'Ostap', 'Anya']})  # any items here
+    else:
+        return make_response('', 404)
 
 
 @app.route('/make_trip', methods=['GET'])
@@ -558,8 +560,6 @@ def get_trips():
         max_date = data['maxDate']
 
         trips = comm.get_agronom_trips(agronom_id=user_id, date_from=min_date, date_to=max_date)
-        for trip in trips:
-            trip["with"] = [peer["name"] for peer in comm.get_admin_trip_peers(trip["id"], user_id)]
         return jsonify(trips)
         # return jsonify(({'id': 0, 'with': ['Ostap', 'Denys', 'Vlad', 'Anya'], 'departion': '2020-05-06',
         #                  'arrival': '2020-05-07', 'location': 'Lviv'},))

@@ -9,8 +9,8 @@
 {% block right_to_nav %}
     <form class="filters" id="filters-form" onsubmit="return false;">
         <h3 class="form-title">Фільтри</h3>
-        <label class="filter">Дата: <input class="date-input" type="number" id="min-date" placeholder="від"> - <input
-                class="date-input" type="number" placeholder="до" id="max-date"></label>
+        <label class="filter">Дата: <input class="date-input" type="date" id="min-date" placeholder="від"> - <input
+                class="date-input" type="date" placeholder="до" id="max-date"></label>
         <button type="button" onclick="getItems()">Застосувати</button>
     </form>
 
